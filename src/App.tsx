@@ -31,6 +31,8 @@ import {
   Database
 } from 'lucide-react';
 
+const API_URL = "https://script.google.com/macros/s/AKfycbyyDFiQuDCrAVpVZeHuNJHaDfHZ9K94hMCMhyxgTd2iSsp1mXTLgoQC0C83MT_CpkroiQ/exec";
+
 export default function App() {
   // --- States ---
   const [areas, setAreas] = useState<ForestryArea[]>([]);
@@ -53,29 +55,13 @@ export default function App() {
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<ForestryArea | null>(null);
 
-  // --- Initial Mount: Load from LocalStorage ---
+  // Global Loading State
+  const [isLoading, setIsLoading] = useState(true);
+
+  // --- Initial Mount: Load from Google Sheets API with fallback to DEFAULTs ---
   useEffect(() => {
-    const savedAreas = localStorage.getItem('forestry_areas');
-    const savedRecords = localStorage.getItem('forestry_records');
+    // Address load from localStorage (local preference)
     const savedAddress = localStorage.getItem('forestry_address');
-
-    if (savedAreas) {
-      const parsed = JSON.parse(savedAreas);
-      setAreas(parsed);
-      if (parsed.length > 0) setSelectedAreaId(parsed[0].id);
-    } else {
-      setAreas(DEFAULT_AREAS);
-      localStorage.setItem('forestry_areas', JSON.stringify(DEFAULT_AREAS));
-      setSelectedAreaId(DEFAULT_AREAS[0].id);
-    }
-
-    if (savedRecords) {
-      setRecords(JSON.parse(savedRecords));
-    } else {
-      setRecords(DEFAULT_RECORDS);
-      localStorage.setItem('forestry_records', JSON.stringify(DEFAULT_RECORDS));
-    }
-
     if (savedAddress) {
       setAddress(savedAddress);
       setTempAddress(savedAddress);
@@ -84,12 +70,71 @@ export default function App() {
       setTempAddress(DEFAULT_ADDRESS);
       localStorage.setItem('forestry_address', DEFAULT_ADDRESS);
     }
+
+    // Load from GAS API
+    async function fetchInitialData() {
+      setIsLoading(true);
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const resData = await response.json();
+        
+        if (resData && Array.isArray(resData.areas) && Array.isArray(resData.records)) {
+          setAreas(resData.areas);
+          setRecords(resData.records);
+          if (resData.areas.length > 0) {
+            setSelectedAreaId(resData.areas[0].id);
+          }
+        } else {
+          // If response is valid but empty/null structures, load default mock forest data
+          console.warn('API returned unexpected data structure, falling back to defaults:', resData);
+          setAreas(DEFAULT_AREAS);
+          setRecords(DEFAULT_RECORDS);
+          if (DEFAULT_AREAS.length > 0) {
+            setSelectedAreaId(DEFAULT_AREAS[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch from Google Apps Script, falling back to defaults:', err);
+        setAreas(DEFAULT_AREAS);
+        setRecords(DEFAULT_RECORDS);
+        if (DEFAULT_AREAS.length > 0) {
+          setSelectedAreaId(DEFAULT_AREAS[0].id);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchInitialData();
   }, []);
 
   // --- Helpers for date translation ---
   const getMonthNumber = (m: string) => {
     const num = parseInt(m);
     return num < 10 ? `0${num}` : `${num}`;
+  };
+
+  // --- Async Post Request Helper (Optimistic Back-end Sync) ---
+  const postToGAS = async (payload: any) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8' // Crucial to avoid preflight (OPTIONS) CORS errors
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`Sync error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('GAS sync success:', data);
+    } catch (err) {
+      console.error('GAS sync failed in background:', err, payload);
+    }
   };
 
   // --- Filtering Logic ---
@@ -127,66 +172,100 @@ export default function App() {
     setIsEditingAddress(false);
   };
 
-  // Record Save/Edit
+  // Record Save/Edit (Optimistic Updates)
   const handleSaveRecord = (recordData: Omit<ForestryRecord, 'id' | 'expense'> & { id?: string }) => {
-    let updated: ForestryRecord[];
     const expense = recordData.price * recordData.quantity;
+    const isEditing = !!recordData.id;
+    const recordId = recordData.id || `REC-${Date.now().toString(36).toUpperCase()}`;
 
-    if (recordData.id) {
-      // Editing
-      updated = records.map((r) =>
-        r.id === recordData.id
-          ? { ...r, ...recordData, expense } as ForestryRecord
-          : r
-      );
-    } else {
-      // New
-      const newRec: ForestryRecord = {
-        ...recordData,
-        id: `REC-${Date.now().toString(36).toUpperCase()}`,
-        expense,
-      };
-      updated = [newRec, ...records];
-    }
+    const finalRecord: ForestryRecord = {
+      ...recordData,
+      id: recordId,
+      expense,
+    };
 
-    setRecords(updated);
-    localStorage.setItem('forestry_records', JSON.stringify(updated));
+    // 1. Optimistic local update
+    setRecords((prev) => {
+      if (isEditing) {
+        return prev.map((r) => (r.id === recordId ? finalRecord : r));
+      } else {
+        return [finalRecord, ...prev];
+      }
+    });
+
+    // 2. Background post
+    const payload = {
+      action: isEditing ? 'UPDATE' : 'CREATE',
+      table: 'record',
+      ...(isEditing ? { id: recordId } : {}),
+      data: finalRecord,
+    };
+    postToGAS(payload);
+
     setEditingRecord(null);
   };
 
-  // Record Delete
+  // Record Delete (Optimistic Updates)
   const handleDeleteRecord = (id: string) => {
     if (window.confirm('선택하신 대장 행을 삭제하시겠습니까? 구글시트 연동 데이터에서 영구 제외됩니다.')) {
-      const updated = records.filter((r) => r.id !== id);
-      setRecords(updated);
-      localStorage.setItem('forestry_records', JSON.stringify(updated));
+      // 1. Optimistic update
+      setRecords((prev) => prev.filter((r) => r.id !== id));
+
+      // 2. Background post
+      postToGAS({
+        action: 'DELETE',
+        table: 'record',
+        id,
+      });
     }
   };
 
-  // Area Save/Edit
+  // Area Save/Edit (Optimistic Updates)
   const handleSaveArea = (areaData: ForestryArea) => {
-    let updated: ForestryArea[];
     const exists = areas.some((a) => a.id === areaData.id);
 
-    if (exists) {
-      updated = areas.map((a) => (a.id === areaData.id ? areaData : a));
-    } else {
-      updated = [...areas, areaData];
-    }
-
-    setAreas(updated);
-    localStorage.setItem('forestry_areas', JSON.stringify(updated));
+    // 1. Optimistic local update
+    setAreas((prev) => {
+      if (exists) {
+        return prev.map((a) => (a.id === areaData.id ? areaData : a));
+      } else {
+        return [...prev, areaData];
+      }
+    });
     setSelectedAreaId(areaData.id);
+
+    // 2. Background post
+    const payload = {
+      action: exists ? 'UPDATE' : 'CREATE',
+      table: 'area',
+      ...(exists ? { id: areaData.id } : {}),
+      data: areaData,
+    };
+    postToGAS(payload);
+
     setEditingArea(null);
   };
 
-  // Area Delete
+  // Area Delete (Optimistic Updates with safety check)
   const handleDeleteArea = (areaId: string) => {
-    const updated = areas.filter((a) => a.id !== areaId);
-    setAreas(updated);
-    localStorage.setItem('forestry_areas', JSON.stringify(updated));
-    if (selectedAreaId === areaId && updated.length > 0) {
-      setSelectedAreaId(updated[0].id);
+    const targetArea = areas.find(a => a.id === areaId);
+    const targetName = targetArea ? targetArea.name : '해당';
+    if (window.confirm(`'${targetName}' 구역을 정말 삭제하시겠습니까? 관련 경영기록의 작업구역 참조는 유지되지만 세부 조회시 영향이 갈 수 있습니다.`)) {
+      // 1. Optimistic local update
+      setAreas((prev) => {
+        const updated = prev.filter((a) => a.id !== areaId);
+        if (selectedAreaId === areaId && updated.length > 0) {
+          setSelectedAreaId(updated[0].id);
+        }
+        return updated;
+      });
+
+      // 2. Background post
+      postToGAS({
+        action: 'DELETE',
+        table: 'area',
+        id: areaId,
+      });
     }
   };
 
@@ -236,8 +315,14 @@ export default function App() {
             <h1 className="text-sm font-black text-slate-800 tracking-tight leading-none flex items-center gap-1.5">
               임업경영관리 통합 대시보드
               <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 rounded-md">V2.4</span>
+              {isLoading && (
+                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-200 rounded-md animate-pulse">
+                  <Database className="w-3 h-3 text-amber-600 animate-bounce" />
+                  구글 시트 연동 중...
+                </span>
+              )}
             </h1>
-            <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">국유림 및 가식조림 실시간 경영 전산 시트</p>
+            <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">임산물 및 조경수 실시간 경영 전산 시트</p>
           </div>
         </div>
 
@@ -356,7 +441,7 @@ export default function App() {
             </div>
           </div>
           <span className="text-[9px] font-extrabold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-sm">
-            조림지 투입액
+            경영지 투입액
           </span>
         </div>
 
@@ -376,7 +461,7 @@ export default function App() {
             </div>
           </div>
           <span className="text-[9px] font-extrabold text-sky-500 bg-sky-50 px-1.5 py-0.5 rounded-sm">
-            누적 조림공수
+            누적 작업공수
           </span>
         </div>
 
@@ -416,7 +501,7 @@ export default function App() {
             </div>
           </div>
           <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm">
-            식재 필지 수
+            경영 필지 수
           </span>
         </div>
       </section>

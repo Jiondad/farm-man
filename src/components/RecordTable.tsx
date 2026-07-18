@@ -214,7 +214,7 @@ export default function RecordTable({
           </div>
         </div>
         <div className="col-span-3 flex items-center justify-end pr-4 text-right">
-          <span className="text-[10px] text-emerald-300 font-medium mr-2">총 조림사업 지출액:</span>
+          <span className="text-[10px] text-emerald-300 font-medium mr-2">총 경영사업 지출액:</span>
           <span className="text-sm font-black text-white">{totalExpense.toLocaleString()} 원</span>
         </div>
         <div className="col-span-3 text-right text-[10px] text-emerald-200/80 font-medium italic">

@@ -82,7 +82,7 @@ export default function RecordModal({
       return;
     }
     if (!areaId) {
-      setError('작업구역을 선택해주세요. 구역이 없다면 먼저 경영 대상 구역을 추가해 주세요.');
+      setError('작업구역을 선택해주세요. 구역이 없다면 먼저 재배/경영 구역을 추가해 주세요.');
       return;
     }
     if (!content.trim()) {
@@ -240,7 +240,7 @@ export default function RecordModal({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-              placeholder="예: 금강송 우량목 가지치기 및 잡목정리"
+              placeholder="예: 참두릅 파종, 표고버섯 종균 접종, 왕벚나무 식재, 잡목 제거 등"
               required
             />
           </div>

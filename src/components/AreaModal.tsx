@@ -60,7 +60,7 @@ export default function AreaModal({
       return;
     }
     if (!treeSpecies.trim()) {
-      setError('주요 수종을 기입해주세요.');
+      setError('주요 수종 및 재배품목을 기입해주세요.');
       return;
     }
     if (areaSize <= 0) {
@@ -68,7 +68,7 @@ export default function AreaModal({
       return;
     }
     if (!plantDate) {
-      setError('식재시기를 기입해주세요.');
+      setError('식재/파종/접종 시기를 기입해주세요.');
       return;
     }
 
@@ -93,9 +93,9 @@ export default function AreaModal({
             <Trees className="w-5 h-5 text-emerald-300" />
             <div>
               <h3 className="text-base font-extrabold">
-                {area ? '경영 대상 구역 정보 수정' : '신규 경영 대상 구역 추가'}
+                {area ? '재배/경영 구역 정보 수정' : '신규 재배/경영 구역 추가'}
               </h3>
-              <p className="text-xxs text-emerald-200 font-medium">관리 대상 조림지 구역의 상세 정보를 기록하고 관리합니다.</p>
+              <p className="text-xxs text-emerald-200 font-medium">관리 대상 재배/경영 구역의 상세 정보를 기록하고 관리합니다.</p>
             </div>
           </div>
           <button
@@ -131,12 +131,12 @@ export default function AreaModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Tree Species */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">주요 수종 (필수)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">주요 수종 및 재배품목 (필수)</label>
               <input
                 type="text"
                 value={treeSpecies}
                 onChange={(e) => setTreeSpecies(e.target.value)}
-                placeholder="예: 편백나무, 백합나무"
+                placeholder="예: 편백나무, 참두릅, 표고버섯, 산양삼, 왕벚나무 등"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                 required
               />
@@ -160,7 +160,7 @@ export default function AreaModal({
           <div className="grid grid-cols-2 gap-4">
             {/* Area Size */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">조림 면적 (m²)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">경영/재배 면적 (m²)</label>
               <input
                 type="number"
                 min="100"
@@ -173,7 +173,7 @@ export default function AreaModal({
 
             {/* Planting Date */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">식재 시기 (YYYY-MM)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">식재/파종/접종 시기 (YYYY-MM)</label>
               <input
                 type="month"
                 value={plantDate}

@@ -45,7 +45,7 @@ export default function AreaPanel({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-800">경영 대상 구역 정보</h3>
-            <p className="text-xxs text-slate-500">등록된 조림지 구역 상태 및 수종 현황</p>
+            <p className="text-xxs text-slate-500">등록된 재배/경영 구역 상태 및 품목 현황</p>
           </div>
         </div>
         <button
@@ -121,7 +121,7 @@ export default function AreaPanel({
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                      <span className="font-bold text-emerald-800">주요수종:</span> {selectedArea.treeSpecies}
+                      <span className="font-bold text-emerald-800">주요 수종 및 재배품목:</span> {selectedArea.treeSpecies}
                     </p>
                   </div>
 
@@ -164,7 +164,7 @@ export default function AreaPanel({
                     <Maximize2 className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-[9px] text-slate-400 leading-none">조림 면적</p>
+                    <p className="text-[9px] text-slate-400 leading-none">경영/재배 면적</p>
                     <p className="text-xs font-extrabold text-slate-700">{selectedArea.areaSize.toLocaleString()} m²</p>
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export default function AreaPanel({
                     <Calendar className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-[9px] text-slate-400 leading-none">식재 시기</p>
+                    <p className="text-[9px] text-slate-400 leading-none">식재/파종/접종 시기</p>
                     <p className="text-xs font-extrabold text-slate-700">{selectedArea.plantDate}</p>
                   </div>
                 </div>
