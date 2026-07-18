@@ -27,22 +27,23 @@ export default function AreaModal({
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // 시스템 현재 월 계산
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
     if (area) {
-      setName(area.name);
-      setTreeSpecies(area.treeSpecies);
-      setAreaSize(area.areaSize);
-      setPlantDate(area.plantDate);
-      setStatus(area.status);
-      setDescription(area.description);
+      // 수정 모드: 카멜케이스와 구글 시트의 스네이크케이스를 모두 지원하도록 호환성 추가
+      setName(area.name || '');
+      setTreeSpecies(area.treeSpecies || (area as any).tree_species || '왕벚나무');
+      setAreaSize(area.areaSize || (area as any).area_size || 0);
+      setPlantDate(area.plantDate || (area as any).plant_date || currentMonth);
+      setStatus(area.status || '정상');
+      setDescription(area.description || '');
     } else {
-      // 신규 구역 추가 시 초기값 셋업
+      // 신규 추가 모드: 초기값 셋업
       setName('');
-      setTreeSpecies('왕벚나무'); // 주요 수종 기본값
-      setAreaSize(0); // 면적 초기값 0
-      
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      setPlantDate(currentMonth); // 현재 월 기본 세팅
-      
+      setTreeSpecies('왕벚나무'); 
+      setAreaSize(0); 
+      setPlantDate(currentMonth);
       setStatus('정상');
       setDescription('');
     }
