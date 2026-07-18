@@ -35,10 +35,39 @@ export default function App() {
       try {
         const response = await fetch(API_URL);
         const resData = await response.json();
+        
+        // 데이터 정규화 로직 추가
         if (resData && Array.isArray(resData.areas)) {
-          setAreas(resData.areas);
-          setRecords(resData.records || []);
-          if (resData.areas.length > 0) setSelectedAreaId(resData.areas[0].id);
+          const normalizedAreas = resData.areas.map((a: any) => ({
+            id: a.id || '',
+            name: a.name || '',
+            treeSpecies: a.treeSpecies || a.tree_species || '',
+            areaSize: Number(a.areaSize || a.area_size || 0),
+            plantDate: a.plantDate || a.plant_date || '',
+            status: a.status || '정상',
+            description: a.description || ''
+          }));
+
+          const normalizedRecords = Array.isArray(resData.records) ? resData.records.map((r: any) => ({
+            id: r.id || '',
+            date: r.date || '',
+            weather: r.weather || '',
+            temperature: Number(r.temperature || 0),
+            humidity: Number(r.humidity || 0),
+            areaId: r.areaId || r.area_id || '',
+            workersCount: Number(r.workersCount || r.workers_count || 0),
+            workHours: Number(r.workHours || r.work_hours || 0),
+            content: r.content || '',
+            materials: r.materials || '',
+            price: Number(r.price || 0),
+            quantity: Number(r.quantity || 0),
+            expense: Number(r.expense || 0),
+            photoUrl: r.photoUrl || r.photo_url || ''
+          })) : [];
+
+          setAreas(normalizedAreas);
+          setRecords(normalizedRecords);
+          if (normalizedAreas.length > 0) setSelectedAreaId(normalizedAreas[0].id);
         }
       } catch (err) {
         setAreas(DEFAULT_AREAS);
@@ -66,7 +95,7 @@ export default function App() {
       action: exists ? 'UPDATE' : 'CREATE',
       table: 'area',
       ...(exists ? { id: areaData.id } : {}),
-      data: {
+      data: { // 시트 헤더명과 일치하는 스네이크 케이스 매핑[cite: 3]
         id: areaData.id,
         name: areaData.name,
         tree_species: areaData.treeSpecies,
@@ -92,7 +121,7 @@ export default function App() {
       action: isEditing ? 'UPDATE' : 'CREATE',
       table: 'record',
       ...(isEditing ? { id: recordId } : {}),
-      data: {
+      data: { // 시트 헤더명과 일치하는 스네이크 케이스 매핑[cite: 3]
         id: finalRecord.id,
         date: finalRecord.date,
         weather: finalRecord.weather,
@@ -113,10 +142,10 @@ export default function App() {
     setEditingRecord(null);
   };
 
-  // ... (나머지 렌더링 코드 유지)
+  // 렌더링 부분은 기존 코드 유지
   return (
     <div className="min-h-screen lg:h-screen w-full bg-slate-100 text-slate-800 flex flex-col p-3 gap-2.5 font-sans">
-        {/* 기존 UI 유지 */}
+        {/* UI 렌더링 영역 */}
     </div>
   );
 }
