@@ -71,7 +71,6 @@ export default function RecordTable({
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80">날씨</th>
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80">온도 (°C)</th>
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80">습도 (%)</th>
-              {/* 추가된 강수량 헤더 */}
               <th className="px-3 py-2.5 text-[11px] font-black text-emerald-600 border-b border-emerald-200 bg-emerald-50/30">강수량 (mm)</th>
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80">작업구역</th>
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80 text-center">참여인원/시간</th>
@@ -109,7 +108,6 @@ export default function RecordTable({
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-slate-600">{record.weather}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-slate-600">{record.temperature}°C</td>
                     <td className="px-3 py-2 whitespace-nowrap text-xs text-slate-600">{record.humidity}%</td>
-                    {/* 추가된 강수량 데이터 */}
                     <td className="px-3 py-2 whitespace-nowrap text-xs font-bold text-emerald-700 bg-emerald-50/20">
                       {record.precipitation ? `${record.precipitation} mm` : '-'}
                     </td>
@@ -175,26 +173,31 @@ export default function RecordTable({
               })
             )}
           </tbody>
+          
+          {/* 💡 합계 영역을 tfoot(테이블 하단 고정)으로 이동하여 각 칼럼에 수직 정렬 */}
+          <tfoot className="sticky bottom-0 z-20 bg-emerald-800 text-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
+            <tr>
+              <td colSpan={6} className="px-3 py-3 text-right border-r border-emerald-700/50">
+                <span className="text-emerald-200/80 font-medium text-[10px] hidden md:inline-block">
+                  * 실시간 수식 반영 (날씨 및 조건별 필터 집계 완료)
+                </span>
+                <span className="text-emerald-200/80 font-bold text-xs md:hidden">합계</span>
+              </td>
+              <td className="px-3 py-3 whitespace-nowrap text-xs text-center border-r border-emerald-700/50 bg-emerald-900/30">
+                <span className="text-emerald-300/80 font-medium mr-1">총</span>
+                <span className="font-bold text-emerald-50">{totalWorkers.toLocaleString()}명</span>
+                <span className="mx-1.5 text-emerald-500/50">/</span>
+                <span className="text-emerald-300/80 font-medium mr-1">총</span>
+                <span className="font-bold text-emerald-50">{totalHours.toLocaleString()}시간</span>
+              </td>
+              <td colSpan={4} className="px-3 py-3 border-r border-emerald-700/50 bg-emerald-800"></td>
+              <td className="px-3 py-3 whitespace-nowrap text-sm font-black text-right text-emerald-50 bg-emerald-900/50 border-r border-emerald-700/50">
+                {totalExpense.toLocaleString()} 원
+              </td>
+              <td colSpan={2} className="px-3 py-3 bg-emerald-800"></td>
+            </tr>
+          </tfoot>
         </table>
-      </div>
-
-      <div className="bg-emerald-800 text-white p-2.5 shrink-0 border-t border-emerald-900 flex flex-wrap items-center justify-between text-xs font-bold rounded-b-xl">
-        <div className="flex items-center gap-4">
-          <span className="bg-emerald-900/50 px-2 py-1 rounded border border-emerald-700/50">
-            총 인력 투입: <span className="text-emerald-300 text-sm ml-1">{totalWorkers.toLocaleString()}</span> 명
-          </span>
-          <span className="bg-emerald-900/50 px-2 py-1 rounded border border-emerald-700/50">
-            총 누적 시간: <span className="text-emerald-300 text-sm ml-1">{totalHours.toLocaleString()}</span> 시간
-          </span>
-        </div>
-        <div className="flex items-center gap-3 mt-2 sm:mt-0">
-          <span className="text-emerald-200/80 font-medium text-[10px] hidden md:inline-block">
-            * 실시간 수식 반영 (날씨 및 조건별 필터 집계 완료)
-          </span>
-          <span className="bg-emerald-900 px-3 py-1.5 rounded-lg border border-emerald-600 shadow-inner">
-            총 경영사업 지출액: <span className="text-white font-black text-sm ml-1">{totalExpense.toLocaleString()}</span> 원
-          </span>
-        </div>
       </div>
 
       {hoveredImage && (
