@@ -3,8 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main  # main 브랜치에 코드가 푸시될 때 자동 실행
 
+# GITHUB_TOKEN의 권한 설정
 permissions:
   contents: read
   pages: write
@@ -25,7 +26,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
@@ -36,6 +36,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # VITE로 생성한 경우 빌드 폴더명은 'dist'입니다. (CRA의 경우 'build', Next.js는 'out')
           path: './dist' 
 
   deploy:
