@@ -548,12 +548,12 @@ export default function App() {
           </div>
 
           {/* Toggle filter */}
-          <div className="flex items-center gap-3 text-xxs font-bold">
+          <div className="flex items-center gap-2.5 text-[9px] font-bold">
             <span className="text-slate-500">대장 필터 구분:</span>
             <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-300">
               <button
                 onClick={() => setFilterByMonth(true)}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                   filterByMonth
                     ? 'bg-white text-emerald-800 shadow-3xs font-black'
                     : 'text-slate-600 hover:text-slate-900'
@@ -563,7 +563,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setFilterByMonth(false)}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                   !filterByMonth
                     ? 'bg-white text-emerald-800 shadow-3xs font-black'
                     : 'text-slate-600 hover:text-slate-900'
