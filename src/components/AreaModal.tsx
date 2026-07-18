@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ForestryArea } from '../types';
-import { X, Save, AlertCircle, Trash2, Trees, Layers } from 'lucide-react';
+import { X, Save, AlertCircle, Trash2, Trees } from 'lucide-react';
 
 interface AreaModalProps {
   isOpen: boolean;
@@ -19,7 +19,8 @@ export default function AreaModal({
 }: AreaModalProps) {
   const [name, setName] = useState('');
   const [treeSpecies, setTreeSpecies] = useState('');
-  const [areaSize, setAreaSize] = useState(0);
+  // 면적 입력을 유연하게 하기 위해 string 타입 허용
+  const [areaSize, setAreaSize] = useState<number | string>(0);
   const [plantDate, setPlantDate] = useState('');
   const [status, setStatus] = useState<ForestryArea['status']>('정상');
   const [description, setDescription] = useState('');
@@ -34,12 +35,13 @@ export default function AreaModal({
       setStatus(area.status);
       setDescription(area.description);
     } else {
+      // 신규 구역 추가 시 초기값 셋업
       setName('');
-      setTreeSpecies('');
-      setAreaSize(0);
+      setTreeSpecies('왕벚나무'); // 주요 수종 기본값
+      setAreaSize(0); // 면적 초기값 0
       
       const currentMonth = new Date().toISOString().slice(0, 7);
-      setPlantDate(currentMonth);
+      setPlantDate(currentMonth); // 현재 월 기본 세팅
       
       setStatus('정상');
       setDescription('');
@@ -60,7 +62,7 @@ export default function AreaModal({
       setError('주요 수종 및 재배품목을 기입해주세요.');
       return;
     }
-    if (areaSize <= 0) {
+    if (Number(areaSize) <= 0) {
       setError('면적은 0보다 커야 합니다.');
       return;
     }
@@ -73,7 +75,7 @@ export default function AreaModal({
       id: area?.id || `ZONE-${Date.now().toString(36).toUpperCase()}`,
       name,
       treeSpecies,
-      areaSize: Number(areaSize),
+      areaSize: Number(areaSize) || 0, // 안전하게 숫자로 변환하여 전송
       plantDate,
       status,
       description,
@@ -160,9 +162,13 @@ export default function AreaModal({
               <label className="block text-xs font-bold text-slate-700 mb-1.5">경영/재배 면적 (m²)</label>
               <input
                 type="number"
-                min="100"
+                min="0"
                 value={areaSize}
-                onChange={(e) => setAreaSize(Math.max(100, Number(e.target.value)))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // 백스페이스로 모두 지웠을 때 강제로 0이나 100이 들어가는 현상 방지
+                  setAreaSize(val === '' ? '' : Number(val));
+                }}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                 required
               />
