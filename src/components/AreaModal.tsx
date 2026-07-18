@@ -49,7 +49,7 @@ export default function AreaModal({
     if (area) {
       // 수정 모드: 카멜케이스와 구글 시트의 스네이크케이스를 모두 지원하도록 호환성 추가
       setName(area.name || '');
-      setTreeSpecies(area.treeSpecies || (area as any).tree_species || '왕벚나무');
+      setTreeSpecies(area.treeSpecies || (area as any).tree_species || '');
       setAreaSize(area.areaSize || (area as any).area_size || 0);
       setPlantDate(area.plantDate || (area as any).plant_date || currentMonth);
       setStatus(area.status || '정상');
@@ -57,7 +57,7 @@ export default function AreaModal({
     } else {
       // 신규 추가 모드: 초기값 셋업
       setName('');
-      setTreeSpecies('왕벚나무'); 
+      setTreeSpecies(''); 
       setAreaSize(0); 
       setPlantDate(currentMonth);
       setStatus('정상');
@@ -152,8 +152,8 @@ export default function AreaModal({
                 type="text"
                 value={treeSpecies}
                 onChange={(e) => setTreeSpecies(e.target.value)}
-                placeholder="예: 편백나무, 참두릅, 표고버섯, 산양삼, 왕벚나무 등"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
+                placeholder="예: 참두릅, 표고버섯, 왕벚나무 등"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors placeholder-slate-400"
                 required
               />
             </div>
