@@ -35,6 +35,35 @@ export default function RecordModal({
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [existingFileNames, setExistingFileNames] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+
+  const API_URL = "https://script.google.com/macros/s/AKfycbyyDFiQuDCrAVpVZeHuNJHaDfHZ9K94hMCMhyxgTd2iSsp1mXTLgoQC0C83MT_CpkroiQ/exec";
+
+  const fetchWeather = async (targetDate: string) => {
+    if (!targetDate) return;
+    setIsWeatherLoading(true);
+    try {
+      const response = await fetch(`${API_URL}?action=getWeather&date=${targetDate}`);
+      if (!response.ok) {
+        throw new Error('날씨 정보 호출 실패');
+      }
+      const data = await response.json();
+      if (data) {
+        // Handle both standard JSON formats and standard wrapper structures
+        const weatherVal = data.weather || (data.data && data.data.weather) || '맑음';
+        const tempVal = typeof data.temp !== 'undefined' ? data.temp : (data.data && typeof data.data.temp !== 'undefined' ? data.data.temp : 24);
+        const humidityVal = typeof data.humidity !== 'undefined' ? data.humidity : (data.data && typeof data.data.humidity !== 'undefined' ? data.data.humidity : 60);
+
+        setWeather(weatherVal);
+        setTemperature(Number(tempVal));
+        setHumidity(Number(humidityVal));
+      }
+    } catch (e) {
+      console.error("날씨 정보 자동 호출 실패:", e);
+    } finally {
+      setIsWeatherLoading(false);
+    }
+  };
 
   // Hydrate fields if editing
   useEffect(() => {
@@ -78,6 +107,9 @@ export default function RecordModal({
       setQuantity(0);
       setExistingFileNames([]);
       setAttachedFiles([]);
+      if (isOpen) {
+        fetchWeather(todayStr);
+      }
     }
     setError('');
   }, [record, isOpen, areas]);
@@ -210,49 +242,79 @@ export default function RecordModal({
               <input
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  const newDate = e.target.value;
+                  setDate(newDate);
+                  fetchWeather(newDate);
+                }}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                 required
               />
             </div>
 
             {/* Weather & Temperature & Humidity */}
-            <div className="grid grid-cols-3 gap-1.5">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">날씨</label>
-                <select
-                  value={weather}
-                  onChange={(e) => setWeather(e.target.value)}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                >
-                  {WEATHER_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-700">기상 정보 (날씨/온도/습도)</label>
+                {isWeatherLoading && (
+                  <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold animate-pulse">
+                    <svg className="animate-spin h-3 w-3 text-emerald-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>조회 중...</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">온도 (°C)</label>
-                <input
-                  type="number"
-                  value={temperature}
-                  onChange={(e) => setTemperature(Number(e.target.value))}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                  placeholder="24"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">습도 (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={humidity}
-                  onChange={(e) => setHumidity(Number(e.target.value))}
-                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                  placeholder="60"
-                />
+              <div className="grid grid-cols-3 gap-1.5">
+                <div>
+                  <select
+                    value={weather}
+                    onChange={(e) => setWeather(e.target.value)}
+                    disabled={isWeatherLoading}
+                    className={`w-full px-2 py-2 border rounded-lg text-xs font-bold focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors ${
+                      isWeatherLoading
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-50 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {WEATHER_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    value={temperature}
+                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    disabled={isWeatherLoading}
+                    className={`w-full px-2 py-2 border rounded-lg text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors ${
+                      isWeatherLoading
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                    placeholder="24"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={humidity}
+                    onChange={(e) => setHumidity(Number(e.target.value))}
+                    disabled={isWeatherLoading}
+                    className={`w-full px-2 py-2 border rounded-lg text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors ${
+                      isWeatherLoading
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                    placeholder="60"
+                  />
+                </div>
               </div>
             </div>
 
