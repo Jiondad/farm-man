@@ -11,14 +11,13 @@ interface RecordModalProps {
 }
 
 export default function RecordModal({ isOpen, onClose, onSave, record, areas }: RecordModalProps) {
-  // 💡 숫자형 필드들을 문자열('')로 초기화하여 키보드 입력 버그 원천 차단
   const [formData, setFormData] = useState<any>({
     date: new Date().toISOString().split('T')[0],
     weather: '맑음',
     temperature: '',
     humidity: '',
     precipitation: '',
-    areaId: areas.length > 0 ? areas[0].id : '',
+    areaId: '',
     workersCount: '',
     workHours: '',
     content: '',
@@ -32,6 +31,9 @@ export default function RecordModal({ isOpen, onClose, onSave, record, areas }: 
     if (record) {
       setFormData({
         ...record,
+        // 💡 핵심 수정: 기존 데이터의 구역이 비어있다면, 화면에 표시되는 첫 번째 구역의 ID로 강제 세팅합니다.
+        // 이렇게 해야 선택지가 1개뿐일 때 빈칸으로 저장되는 버그를 막을 수 있습니다.
+        areaId: record.areaId || (areas.length > 0 ? areas[0].id : ''),
         temperature: record.temperature ?? '',
         humidity: record.humidity ?? '',
         precipitation: record.precipitation ?? '',
@@ -64,7 +66,6 @@ export default function RecordModal({ isOpen, onClose, onSave, record, areas }: 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    // 💡 입력 중일 때는 어떠한 변환도 하지 않고 입력된 그대로(문자열) 저장합니다. (키보드 입력 막힘 해결)
     setFormData((prev: any) => ({
       ...prev,
       [name]: value,
@@ -74,7 +75,6 @@ export default function RecordModal({ isOpen, onClose, onSave, record, areas }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 💡 폼을 제출(저장)하는 순간에만 빈 칸은 유지하고, 입력된 값은 숫자(Number)로 변환하여 에러를 방지합니다.
     const finalData = {
       ...formData,
       temperature: formData.temperature === '' ? '' : Number(formData.temperature),
@@ -89,7 +89,6 @@ export default function RecordModal({ isOpen, onClose, onSave, record, areas }: 
     onSave(finalData);
   };
 
-  // 실시간 지출 비용 계산 로직
   const totalExpense = (Number(formData.price) || 0) * (Number(formData.quantity) || 0);
 
   return (
