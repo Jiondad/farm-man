@@ -206,7 +206,22 @@ export default function App() {
       action: isEditing ? 'UPDATE' : 'CREATE',
       table: 'record',
       ...(isEditing ? { id: recordId } : {}),
-      data: finalRecord,
+      data: {
+        id: finalRecord.id,
+        date: finalRecord.date,
+        weather: finalRecord.weather,
+        temperature: finalRecord.temperature,
+        humidity: finalRecord.humidity,
+        area_id: finalRecord.areaId,
+        workers_count: finalRecord.workersCount,
+        work_hours: finalRecord.workHours,
+        content: finalRecord.content,
+        materials: finalRecord.materials,
+        price: finalRecord.price,
+        quantity: finalRecord.quantity,
+        expense: finalRecord.expense,
+        photo_url: finalRecord.photoUrl
+      },
     };
     postToGAS(payload);
 
@@ -247,7 +262,15 @@ export default function App() {
       action: exists ? 'UPDATE' : 'CREATE',
       table: 'area',
       ...(exists ? { id: areaData.id } : {}),
-      data: areaData,
+      data: {
+        id: areaData.id,
+        name: areaData.name,
+        tree_species: areaData.treeSpecies,
+        area_size: areaData.areaSize,
+        plant_date: areaData.plantDate,
+        status: areaData.status,
+        description: areaData.description
+      },
     };
     postToGAS(payload);
 
