@@ -25,54 +25,21 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
   const [showPrecipitation, setShowPrecipitation] = useState<boolean>(true);
   const [showHumidity, setShowHumidity] = useState<boolean>(true);
 
-  // Generate 30 days of daily mock data based on the selected month's metrics
+  // Generate 30 days of daily mock data with all values set to 0
   const dailyData = useMemo(() => {
-    // Find baseline metrics
-    const activeMonthData = data.find(item => item.month === selectedMonth) || data[0] || {
-      temperature: 15,
-      avgTemperature: 11,
-      precipitation: 100,
-      humidity: 60,
-    };
-    const baseTemp = activeMonthData.temperature;
-    const baseAvgTemp = activeMonthData.avgTemperature ?? (baseTemp - 4.5);
-    const basePrecip = activeMonthData.precipitation;
-    const baseHumidity = activeMonthData.humidity;
-    const monthNum = parseInt(selectedMonth) || 7;
-
     const list = [];
     for (let d = 1; d <= 30; d++) {
-      // Natural fluctuation for daily temperatures
-      const tempFluctuation = Math.sin((d / 30) * Math.PI * 2) * 3.8 + Math.sin(d * 1.6 + monthNum) * 1.2;
-      const temperature = Math.round((baseTemp + tempFluctuation) * 10) / 10;
-      const avgTemperature = Math.round((baseAvgTemp + tempFluctuation) * 10) / 10;
-
-      // Natural fluctuation for daily humidity
-      const humidityFluctuation = Math.cos((d / 30) * Math.PI * 2) * 7.5 + Math.sin(d * 1.3 + monthNum) * 4.5;
-      const humidity = Math.round(Math.min(95, Math.max(30, baseHumidity + humidityFluctuation)));
-
-      // Rainy days concentrates monthly precipitation
-      const rainScore = Math.sin(d * 0.95 + monthNum * 1.3);
-      let precipitation = 0;
-      if (rainScore > 0.65) {
-        const rawPrecip = (basePrecip / 4) * (0.7 + Math.cos(d * 2.2) * 0.4);
-        precipitation = Math.round(Math.max(0, rawPrecip) * 10) / 10;
-      } else if (rainScore > 0.35) {
-        const rawPrecip = (basePrecip / 12) * (0.5 + Math.sin(d * 1.5) * 0.3);
-        precipitation = Math.round(Math.max(0, rawPrecip) * 10) / 10;
-      }
-
       list.push({
         label: `${d}일`,
-        temperature,
-        avgTemperature,
-        precipitation,
-        humidity,
+        temperature: 0,
+        avgTemperature: 0,
+        precipitation: 0,
+        humidity: 0,
         originalKey: `${d}일`,
       });
     }
     return list;
-  }, [selectedMonth, data]);
+  }, []);
 
   // Combine data depending on monthly vs daily mode
   const chartData = useMemo(() => {
