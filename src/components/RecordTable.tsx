@@ -64,7 +64,8 @@ export default function RecordTable({
       </div>
 
       <div className="flex-1 overflow-auto custom-scrollbar relative">
-        <table className="w-full text-left border-collapse min-w-[1200px]">
+        {/* 💡 테이블에 h-full을 주어 컨테이너 전체 높이를 차지하도록 설정 */}
+        <table className="w-full text-left border-collapse min-w-[1200px] h-full">
           <thead className="sticky top-0 bg-white/95 backdrop-blur-sm shadow-2xs z-10">
             <tr>
               <th className="px-3 py-2.5 text-[11px] font-black text-slate-500 border-b border-slate-200/80">작업일</th>
@@ -172,9 +173,12 @@ export default function RecordTable({
                 );
               })
             )}
+            {/* 💡 남는 빈 공간을 흡수하여 합계(tfoot) 영역을 바닥으로 밀어내는 더미(빈) 행 추가 */}
+            <tr className="h-full pointer-events-none">
+              <td colSpan={14} className="border-0 bg-transparent"></td>
+            </tr>
           </tbody>
           
-          {/* 💡 합계 영역을 tfoot(테이블 하단 고정)으로 이동하여 각 칼럼에 수직 정렬 */}
           <tfoot className="sticky bottom-0 z-20 bg-emerald-800 text-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
             <tr>
               <td colSpan={6} className="px-3 py-3 text-right border-r border-emerald-700/50">
