@@ -21,6 +21,7 @@ export default function RecordModal({
   const [date, setDate] = useState('');
   const [weather, setWeather] = useState('맑음');
   const [temperature, setTemperature] = useState(24);
+  const [humidity, setHumidity] = useState(60);
   const [areaId, setAreaId] = useState('');
   const [workersCount, setWorkersCount] = useState(1);
   const [workHours, setWorkHours] = useState(4);
@@ -41,6 +42,7 @@ export default function RecordModal({
       setDate(record.date);
       setWeather(record.weather);
       setTemperature(record.temperature);
+      setHumidity(record.humidity !== undefined ? record.humidity : 60);
       setAreaId(record.areaId);
       setWorkersCount(record.workersCount);
       setWorkHours(record.workHours);
@@ -66,6 +68,7 @@ export default function RecordModal({
       setDate(todayStr);
       setWeather('맑음');
       setTemperature(25);
+      setHumidity(60);
       setAreaId(areas.length > 0 ? areas[0].id : '');
       setWorkersCount(2);
       setWorkHours(8);
@@ -157,6 +160,7 @@ export default function RecordModal({
       date,
       weather,
       temperature: Number(temperature),
+      humidity: Number(humidity),
       areaId,
       workersCount: Number(workersCount),
       workHours: Number(workHours),
@@ -212,14 +216,14 @@ export default function RecordModal({
               />
             </div>
 
-            {/* Weather & Temperature */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Weather & Temperature & Humidity */}
+            <div className="grid grid-cols-3 gap-1.5">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">날씨</label>
                 <select
                   value={weather}
                   onChange={(e) => setWeather(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                 >
                   {WEATHER_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -234,8 +238,20 @@ export default function RecordModal({
                   type="number"
                   value={temperature}
                   onChange={(e) => setTemperature(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
                   placeholder="24"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">습도 (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={humidity}
+                  onChange={(e) => setHumidity(Number(e.target.value))}
+                  className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
+                  placeholder="60"
                 />
               </div>
             </div>

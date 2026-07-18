@@ -45,6 +45,7 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
     date: '2026-07-01',
     weather: '맑음',
     temperature: 28,
+    humidity: 55,
     areaId: 'ZONE-A',
     workersCount: 4,
     workHours: 6,
@@ -60,6 +61,7 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
     date: '2026-07-05',
     weather: '맑음',
     temperature: 30,
+    humidity: 62,
     areaId: 'ZONE-B',
     workersCount: 3,
     workHours: 8,
@@ -75,6 +77,7 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
     date: '2026-07-10',
     weather: '흐림',
     temperature: 26,
+    humidity: 75,
     areaId: 'ZONE-C',
     workersCount: 2,
     workHours: 4,
@@ -90,6 +93,7 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
     date: '2026-07-12',
     weather: '비',
     temperature: 22,
+    humidity: 90,
     areaId: 'ZONE-D',
     workersCount: 2,
     workHours: 3,
@@ -105,6 +109,7 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
     date: '2026-07-15',
     weather: '맑음',
     temperature: 31,
+    humidity: 48,
     areaId: 'ZONE-A',
     workersCount: 5,
     workHours: 7,
@@ -119,32 +124,32 @@ export const DEFAULT_RECORDS: ForestryRecord[] = [
 
 export const CLIMATE_DATA_YEARLY: Record<string, ClimateData[]> = {
   '2026': [
-    { month: '1월', temperature: -2.4, precipitation: 18 },
-    { month: '2월', temperature: 0.8, precipitation: 24 },
-    { month: '3월', temperature: 6.2, precipitation: 45 },
-    { month: '4월', temperature: 12.5, precipitation: 68 },
-    { month: '5월', temperature: 18.1, precipitation: 82 },
-    { month: '6월', temperature: 22.8, precipitation: 145 },
-    { month: '7월', temperature: 26.5, precipitation: 290 }, // Current Selected
-    { month: '8월', temperature: 27.2, precipitation: 240 },
-    { month: '9월', temperature: 21.8, precipitation: 135 },
-    { month: '10월', temperature: 15.3, precipitation: 55 },
-    { month: '11월', temperature: 7.9, precipitation: 38 },
-    { month: '12월', temperature: 0.2, precipitation: 22 }
+    { month: '1월', temperature: -2.4, avgTemperature: -5.1, precipitation: 18, humidity: 55 },
+    { month: '2월', temperature: 0.8, avgTemperature: -2.2, precipitation: 24, humidity: 53 },
+    { month: '3월', temperature: 6.2, avgTemperature: 2.5, precipitation: 45, humidity: 58 },
+    { month: '4월', temperature: 12.5, avgTemperature: 8.8, precipitation: 68, humidity: 60 },
+    { month: '5월', temperature: 18.1, avgTemperature: 13.9, precipitation: 82, humidity: 64 },
+    { month: '6월', temperature: 22.8, avgTemperature: 18.2, precipitation: 145, humidity: 72 },
+    { month: '7월', temperature: 26.5, avgTemperature: 22.1, precipitation: 290, humidity: 80 }, // Current Selected
+    { month: '8월', temperature: 27.2, avgTemperature: 22.8, precipitation: 240, humidity: 78 },
+    { month: '9월', temperature: 21.8, avgTemperature: 17.5, precipitation: 135, humidity: 74 },
+    { month: '10월', temperature: 15.3, avgTemperature: 11.2, precipitation: 55, humidity: 65 },
+    { month: '11월', temperature: 7.9, avgTemperature: 4.1, precipitation: 38, humidity: 61 },
+    { month: '12월', temperature: 0.2, avgTemperature: -3.3, precipitation: 22, humidity: 57 }
   ],
   '2025': [
-    { month: '1월', temperature: -3.0, precipitation: 12 },
-    { month: '2월', temperature: -0.5, precipitation: 18 },
-    { month: '3월', temperature: 5.8, precipitation: 35 },
-    { month: '4월', temperature: 11.9, precipitation: 55 },
-    { month: '5월', temperature: 17.5, precipitation: 95 },
-    { month: '6월', temperature: 21.9, precipitation: 120 },
-    { month: '7월', temperature: 25.8, precipitation: 310 },
-    { month: '8월', temperature: 26.9, precipitation: 195 },
-    { month: '9월', temperature: 22.1, precipitation: 160 },
-    { month: '10월', temperature: 14.8, precipitation: 48 },
-    { month: '11월', temperature: 8.2, precipitation: 42 },
-    { month: '12월', temperature: -0.8, precipitation: 28 }
+    { month: '1월', temperature: -3.0, avgTemperature: -5.8, precipitation: 12, humidity: 52 },
+    { month: '2월', temperature: -0.5, avgTemperature: -3.1, precipitation: 18, humidity: 54 },
+    { month: '3월', temperature: 5.8, avgTemperature: 1.9, precipitation: 35, humidity: 56 },
+    { month: '4월', temperature: 11.9, avgTemperature: 8.1, precipitation: 55, humidity: 59 },
+    { month: '5월', temperature: 17.5, avgTemperature: 13.2, precipitation: 95, humidity: 62 },
+    { month: '6월', temperature: 21.9, avgTemperature: 17.4, precipitation: 120, humidity: 70 },
+    { month: '7월', temperature: 25.8, avgTemperature: 21.5, precipitation: 310, humidity: 82 },
+    { month: '8월', temperature: 26.9, avgTemperature: 22.3, precipitation: 195, humidity: 77 },
+    { month: '9월', temperature: 22.1, avgTemperature: 17.9, precipitation: 160, humidity: 75 },
+    { month: '10월', temperature: 14.8, avgTemperature: 10.6, precipitation: 48, humidity: 63 },
+    { month: '11월', temperature: 8.2, avgTemperature: 4.5, precipitation: 42, humidity: 60 },
+    { month: '12월', temperature: -0.8, avgTemperature: -3.9, precipitation: 28, humidity: 55 }
   ]
 };
 

@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useMemo } from 'react';
 import { ClimateData } from '../types';
-import { Thermometer, CloudRain, Sun, CalendarDays } from 'lucide-react';
+import { Thermometer, Eye, EyeOff, CalendarDays, Droplets, CloudRain } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
 
 interface ClimateChartProps {
   data: ClimateData[];
@@ -10,422 +19,384 @@ interface ClimateChartProps {
 }
 
 export default function ClimateChart({ data, selectedMonth, onMonthSelect }: ClimateChartProps) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [viewMode, setViewMode] = useState<'monthly' | 'daily'>('monthly');
+  const [showTemperature, setShowTemperature] = useState<boolean>(true);
+  const [showAvgTemperature, setShowAvgTemperature] = useState<boolean>(true);
+  const [showPrecipitation, setShowPrecipitation] = useState<boolean>(true);
+  const [showHumidity, setShowHumidity] = useState<boolean>(true);
 
-  useEffect(() => {
-    // Trigger entrance animations
-    setIsLoaded(true);
-  }, []);
+  // Generate 30 days of daily mock data based on the selected month's metrics
+  const dailyData = useMemo(() => {
+    // Find baseline metrics
+    const activeMonthData = data.find(item => item.month === selectedMonth) || data[0] || {
+      temperature: 15,
+      avgTemperature: 11,
+      precipitation: 100,
+      humidity: 60,
+    };
+    const baseTemp = activeMonthData.temperature;
+    const baseAvgTemp = activeMonthData.avgTemperature ?? (baseTemp - 4.5);
+    const basePrecip = activeMonthData.precipitation;
+    const baseHumidity = activeMonthData.humidity;
+    const monthNum = parseInt(selectedMonth) || 7;
 
-  // Reset hovered index on view mode or month change
-  useEffect(() => {
-    setHoveredIndex(null);
-  }, [viewMode, selectedMonth]);
-
-  // Find selected monthly baseline to feed daily mock data generator
-  const activeMonthData = data.find(item => item.month === selectedMonth) || data[0] || { temperature: 15, precipitation: 100 };
-  const baseTemp = activeMonthData.temperature;
-  const basePrecip = activeMonthData.precipitation;
-
-  // Generate 30 days of dynamic daily mock climate data based on selected monthly baseline
-  const dailyData = React.useMemo(() => {
     const list = [];
-    const monthNum = parseInt(selectedMonth) || 7; // Fallback to July-like baseline index
-
     for (let d = 1; d <= 30; d++) {
-      // Create temperature curve: baseTemp + natural sine variation + micro fluctuation
-      const tempVariation = Math.sin((d / 30) * Math.PI * 2) * 3.5 + Math.sin(d * 1.7 + monthNum) * 1.5;
-      const temperature = Math.round((baseTemp + tempVariation) * 10) / 10;
+      // Natural fluctuation for daily temperatures
+      const tempFluctuation = Math.sin((d / 30) * Math.PI * 2) * 3.8 + Math.sin(d * 1.6 + monthNum) * 1.2;
+      const temperature = Math.round((baseTemp + tempFluctuation) * 10) / 10;
+      const avgTemperature = Math.round((baseAvgTemp + tempFluctuation) * 10) / 10;
 
-      // Concentrated rainfall mock algorithm: distributes monthly baseline precipitation into 4-5 rainy days
-      const rainScore = Math.sin(d * 0.9 + monthNum * 1.2);
+      // Natural fluctuation for daily humidity
+      const humidityFluctuation = Math.cos((d / 30) * Math.PI * 2) * 7.5 + Math.sin(d * 1.3 + monthNum) * 4.5;
+      const humidity = Math.round(Math.min(95, Math.max(30, baseHumidity + humidityFluctuation)));
+
+      // Rainy days concentrates monthly precipitation
+      const rainScore = Math.sin(d * 0.95 + monthNum * 1.3);
       let precipitation = 0;
-      if (rainScore > 0.6) {
-        // Heavy precipitation days
-        const rawPrecip = (basePrecip / 4) * (0.6 + Math.cos(d * 2.1) * 0.4);
+      if (rainScore > 0.65) {
+        const rawPrecip = (basePrecip / 4) * (0.7 + Math.cos(d * 2.2) * 0.4);
         precipitation = Math.round(Math.max(0, rawPrecip) * 10) / 10;
-      } else if (rainScore > 0.3) {
-        // Light shower days
-        const rawPrecip = (basePrecip / 12) * (0.4 + Math.sin(d * 1.4) * 0.3);
+      } else if (rainScore > 0.35) {
+        const rawPrecip = (basePrecip / 12) * (0.5 + Math.sin(d * 1.5) * 0.3);
         precipitation = Math.round(Math.max(0, rawPrecip) * 10) / 10;
       }
 
       list.push({
-        day: d,
+        label: `${d}일`,
         temperature,
+        avgTemperature,
         precipitation,
+        humidity,
+        originalKey: `${d}일`,
       });
     }
     return list;
-  }, [selectedMonth, baseTemp, basePrecip]);
+  }, [selectedMonth, data]);
 
-  // Define dynamic plotting points mapping
-  interface PlotPoint {
-    label: string;
-    temperature: number;
-    precipitation: number;
-    originalKey: string;
-  }
-
-  const points: PlotPoint[] = React.useMemo(() => {
+  // Combine data depending on monthly vs daily mode
+  const chartData = useMemo(() => {
     if (viewMode === 'monthly') {
       return data.map(d => ({
         label: d.month,
         temperature: d.temperature,
+        avgTemperature: d.avgTemperature,
         precipitation: d.precipitation,
+        humidity: d.humidity,
         originalKey: d.month,
       }));
     } else {
-      return dailyData.map(d => ({
-        label: `${selectedMonth} ${d.day}일`,
-        temperature: d.temperature,
-        precipitation: d.precipitation,
-        originalKey: `${d.day}일`,
-      }));
+      return dailyData;
     }
-  }, [viewMode, data, dailyData, selectedMonth]);
+  }, [viewMode, data, dailyData]);
 
-  // Dimensions
-  const width = 580;
-  const height = 180;
-  const paddingLeft = 40;
-  const paddingRight = 40;
-  const paddingTop = 20;
-  const paddingBottom = 45; // Increased to completely avoid X-axis text clipping
-
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-
-  // Scales & Bounds
-  const minTemp = -10;
-  const maxTemp = 40;
-  const tempRange = maxTemp - minTemp;
-
-  // Adapt precipitation limit to view mode (monthly scale is up to 350mm, daily spikes scale around 80mm)
-  const maxPrecip = React.useMemo(() => {
-    if (viewMode === 'monthly') {
-      return 350;
-    } else {
-      const maxDaily = Math.max(...dailyData.map(d => d.precipitation));
-      return Math.max(40, Math.round(maxDaily * 1.2));
+  // Format X Axis ticks to prevent overlapping in daily view
+  const formatXAxis = (value: string, index: number) => {
+    if (viewMode === 'monthly') return value;
+    const dayNum = index + 1;
+    // Show label every 5 days
+    if (dayNum === 1 || dayNum % 5 === 0) {
+      return value;
     }
-  }, [viewMode, dailyData]);
-
-  const getX = (index: number) => {
-    if (points.length <= 1) return paddingLeft;
-    return paddingLeft + (index / (points.length - 1)) * chartWidth;
+    return '';
   };
 
-  const getYPrecip = (val: number) => {
-    return height - paddingBottom - (val / maxPrecip) * chartHeight;
-  };
-
-  const getYTemp = (val: number) => {
-    const ratio = (val - minTemp) / tempRange;
-    return height - paddingBottom - ratio * chartHeight;
-  };
-
-  const handleItemSelect = (pt: PlotPoint) => {
-    if (viewMode === 'monthly') {
-      onMonthSelect(pt.originalKey);
+  const handleChartClick = (state: any) => {
+    if (viewMode === 'monthly' && state && state.activeLabel) {
+      onMonthSelect(state.activeLabel);
     }
+  };
+
+  // Custom styling for Tooltip matching professional dashboard UI aesthetics
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-900/90 text-white text-[11px] p-2.5 rounded-lg shadow-md border border-slate-700/60 flex flex-col gap-1 min-w-[150px] backdrop-blur-xs">
+          <div className="font-bold border-b border-slate-700/50 pb-1 mb-1 text-slate-300">
+            {viewMode === 'monthly' ? label : `${selectedMonth} ${label}`}
+          </div>
+          {payload.map((p: any) => {
+            let unit = '';
+            if (p.dataKey === 'temperature' || p.dataKey === 'avgTemperature') {
+              unit = '°C';
+            } else if (p.dataKey === 'precipitation') {
+              unit = 'mm';
+            } else if (p.dataKey === 'humidity') {
+              unit = '%';
+            }
+            return (
+              <div key={p.dataKey} className="flex items-center justify-between gap-4">
+                <span className="text-slate-400 font-medium">{p.name}:</span>
+                <span className="font-extrabold" style={{ color: p.stroke || p.fill || p.color }}>
+                  {p.value}{unit}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs relative flex flex-col h-full justify-between">
-      {/* Top Header */}
-      <div className="flex items-center justify-between mb-2 shrink-0">
+    <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex flex-col h-full justify-between">
+      {/* Chart Top Bar Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 shrink-0">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-600">
             <CalendarDays className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">기후 변화 및 기상 분석</h3>
+            <h3 className="text-sm font-semibold text-slate-800">임업 기후 복합 통계 및 모니터링</h3>
             <p className="text-xxs text-slate-500">
-              {viewMode === 'monthly' ? '월간 평균 기온 (라인) 및 강수량' : `${selectedMonth} 세부 일간 기온 변화 및 강수량`}
+              {viewMode === 'monthly' ? '월별 최고/평균 기온, 강수량 및 습도 분포 그래프' : `${selectedMonth} 세부 일별 기상 지표 종합 변동`}
             </p>
           </div>
         </div>
-        
-        {/* Toggle Mode & Legends */}
-        <div className="flex items-center gap-4">
-          {/* Monthly / Daily Segment Tab */}
-          <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode('monthly')}
-              className={`px-2.5 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                viewMode === 'monthly'
-                  ? 'bg-white text-emerald-800 shadow-3xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              월간
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('daily')}
-              className={`px-2.5 py-0.5 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                viewMode === 'daily'
-                  ? 'bg-white text-emerald-800 shadow-3xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              일간
-            </button>
-          </div>
 
-          {/* Legends */}
-          <div className="hidden sm:flex items-center gap-3 text-xxs font-medium">
-            <div className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-xs bg-sky-200/90 border border-sky-400/30 inline-block"></span>
-              <span className="text-slate-600">강수량 (mm)</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-3 h-0.5 bg-rose-500 inline-block relative after:content-[''] after:absolute after:w-1.5 after:h-1.5 after:bg-rose-500 after:rounded-full after:left-1/2 after:top-1/2 after:-translate-x-1/2 after:-translate-y-1/2"></span>
-              <span className="text-slate-600">기온 (°C)</span>
-            </div>
-          </div>
+        {/* View Mode Switcher */}
+        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0 self-start sm:self-center">
+          <button
+            type="button"
+            onClick={() => setViewMode('monthly')}
+            className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+              viewMode === 'monthly'
+                ? 'bg-white text-emerald-800 shadow-3xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            월간 분석
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('daily')}
+            className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+              viewMode === 'daily'
+                ? 'bg-white text-emerald-800 shadow-3xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            일간 정밀분석
+          </button>
         </div>
       </div>
 
-      {/* SVG Chart Container */}
-      <div className="relative flex-1 min-h-[140px] select-none">
-        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="overflow-visible">
-          {/* Horizontal Grid Lines & Y-Axis Labels */}
-          {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-            const y = height - paddingBottom - ratio * chartHeight;
-            const precipVal = Math.round(ratio * maxPrecip);
-            const tempVal = Math.round(minTemp + ratio * tempRange);
-
-            return (
-              <g key={i} className="opacity-60">
-                <line
-                  x1={paddingLeft}
-                  y1={y}
-                  x2={width - paddingRight}
-                  y2={y}
-                  stroke="#E2E8F0"
-                  strokeWidth="1"
-                  strokeDasharray="3 3"
-                />
-                {/* Temp Left Label */}
-                <text x={paddingLeft - 8} y={y + 3} className="text-[9px] font-medium fill-slate-400 text-right" textAnchor="end">
-                  {tempVal}°C
-                </text>
-                {/* Precip Right Label */}
-                <text x={width - paddingRight + 8} y={y + 3} className="text-[9px] font-medium fill-slate-400 text-start" textAnchor="start">
-                  {precipVal}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Bar Charts for Precipitation */}
-          {points.map((pt, idx) => {
-            const x = getX(idx);
-            const yPrecip = getYPrecip(pt.precipitation);
-            const barWidth = viewMode === 'monthly' ? 14 : 5;
-            const isSelected = viewMode === 'monthly' && pt.originalKey === selectedMonth;
-
-            return (
-              <g key={`bar-${idx}`} className="cursor-pointer" onClick={() => handleItemSelect(pt)}>
-                {/* Highlight background column */}
-                <rect
-                  x={x - barWidth}
-                  y={paddingTop}
-                  width={barWidth * 2}
-                  height={chartHeight}
-                  className={`fill-transparent transition-colors duration-200 ${
-                    isSelected ? 'fill-emerald-50/20' : hoveredIndex === idx ? 'fill-slate-50/40' : ''
-                  }`}
-                />
-
-                {/* Actual Bar */}
-                <motion.rect
-                  x={x - barWidth / 2}
-                  y={yPrecip}
-                  width={barWidth}
-                  height={Math.max(0, height - paddingBottom - yPrecip)}
-                  rx={viewMode === 'monthly' ? '2' : '1'}
-                  className={`transition-colors duration-300 ${
-                    isSelected 
-                      ? 'fill-sky-400/90 stroke-sky-500/50' 
-                      : hoveredIndex === idx 
-                        ? 'fill-sky-300/80 stroke-sky-400/40' 
-                        : 'fill-sky-200/60 stroke-sky-300/30'
-                  }`}
-                  strokeWidth="1"
-                  initial={{ height: 0, y: height - paddingBottom }}
-                  animate={isLoaded ? { 
-                    height: Math.max(0, height - paddingBottom - yPrecip),
-                    y: yPrecip 
-                  } : {}}
-                  transition={{ duration: 0.8, delay: idx * (viewMode === 'monthly' ? 0.03 : 0.005), ease: 'easeOut' }}
-                />
-              </g>
-            );
-          })}
-
-          {/* Line Chart for Temperature */}
-          <g>
-            {points.map((pt, idx) => {
-              if (idx === 0) return null;
-              const prevPt = points[idx - 1];
-              const x1 = getX(idx - 1);
-              const y1 = getYTemp(prevPt.temperature);
-              const x2 = getX(idx);
-              const y2 = getYTemp(pt.temperature);
-
-              return (
-                <motion.line
-                  key={`line-segment-${idx}`}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  stroke="#F43F5E"
-                  strokeWidth={viewMode === 'monthly' ? '1.5' : '1.2'}
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0 }}
-                  animate={isLoaded ? { pathLength: 1 } : {}}
-                  transition={{ duration: 1, ease: 'easeInOut' }}
-                />
-              );
-            })}
-
-            {/* Dots on Temperature Line */}
-            {points.map((pt, idx) => {
-              const x = getX(idx);
-              const y = getYTemp(pt.temperature);
-              const isSelected = viewMode === 'monthly' && pt.originalKey === selectedMonth;
-
-              // Hide or shrink dots in daily view to avoid visual clutter
-              const dotRadius = viewMode === 'monthly' 
-                ? (isSelected ? 5.5 : hoveredIndex === idx ? 4.5 : 3.5)
-                : (hoveredIndex === idx ? 4 : 1.5);
-
-              return (
-                <g key={`dot-${idx}`} className="cursor-pointer" onClick={() => handleItemSelect(pt)}>
-                  <motion.circle
-                    cx={x}
-                    cy={y}
-                    r={dotRadius}
-                    className={`transition-all duration-200 ${
-                      isSelected 
-                        ? 'fill-rose-600 stroke-white stroke-[1.5] shadow-sm' 
-                        : hoveredIndex === idx 
-                          ? 'fill-rose-500 stroke-rose-100 stroke-1' 
-                          : viewMode === 'monthly' 
-                            ? 'fill-white stroke-rose-500 stroke-[1.5]'
-                            : 'fill-rose-500'
-                    }`}
-                    initial={{ scale: 0 }}
-                    animate={isLoaded ? { scale: 1 } : {}}
-                    transition={{ delay: 0.5 + idx * (viewMode === 'monthly' ? 0.02 : 0.003) }}
-                  />
-                </g>
-              );
-            })}
-          </g>
-
-          {/* X Axis Labels (Clipping fixed & conditional rendering to avoid clutter) */}
-          {points.map((pt, idx) => {
-            const x = getX(idx);
-            const isSelected = viewMode === 'monthly' && pt.originalKey === selectedMonth;
-
-            // Monthly: Render all. Daily: Render 1일, 5일, 10일, 15일, 20일, 25일, 30일 to prevent overlap.
-            const shouldRenderLabel = viewMode === 'monthly' || ((idx + 1) === 1 || (idx + 1) % 5 === 0);
-            if (!shouldRenderLabel) return null;
-
-            return (
-              <text
-                key={`label-${idx}`}
-                x={x}
-                y={height - 15} // Safely aligned inside paddingBottom (45) bounds
-                textAnchor="middle"
-                onClick={() => handleItemSelect(pt)}
-                className={`text-[9.5px] font-semibold cursor-pointer transition-colors duration-200 ${
-                  isSelected ? 'fill-emerald-700 font-bold' : 'fill-slate-500 hover:fill-slate-800'
-                }`}
-              >
-                {viewMode === 'monthly' ? pt.label : `${idx + 1}일`}
-              </text>
-            );
-          })}
-
-          {/* Mouse interactive areas */}
-          {points.map((pt, idx) => {
-            const x = getX(idx);
-            const colWidth = chartWidth / (points.length - 1);
-            return (
-              <rect
-                key={`trigger-${idx}`}
-                x={x - colWidth / 2}
-                y={paddingTop}
-                width={colWidth}
-                height={chartHeight}
-                className="fill-transparent cursor-pointer opacity-0"
-                onMouseEnter={() => setHoveredIndex(idx)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                onClick={() => handleItemSelect(pt)}
-              />
-            );
-          })}
-        </svg>
-
-        {/* Hover Tooltip Overlay */}
-        <AnimatePresence>
-          {hoveredIndex !== null && points[hoveredIndex] && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 5, scale: 0.95 }}
-              className="absolute z-10 bg-slate-800/95 text-white text-[11px] p-2.5 rounded-lg shadow-md border border-slate-700/80 pointer-events-none flex flex-col gap-1 min-w-[125px]"
-              style={{
-                left: `${Math.min(
-                  85,
-                  Math.max(15, (getX(hoveredIndex) / width) * 100)
-                )}%`,
-                top: '5px',
-                transform: 'translateX(-50%)',
-              }}
-            >
-              <div className="font-bold border-b border-slate-700/60 pb-1 flex items-center justify-between gap-2">
-                <span>{points[hoveredIndex].label}</span>
-                {viewMode === 'monthly' && points[hoveredIndex].originalKey === selectedMonth && (
-                  <span className="text-[9px] bg-emerald-500/30 text-emerald-400 px-1 rounded-sm">선택됨</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-rose-300">
-                <Thermometer className="w-3.5 h-3.5" />
-                <span>평균기온: <strong>{points[hoveredIndex].temperature}°C</strong></span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sky-300">
-                <CloudRain className="w-3.5 h-3.5" />
-                <span>강수량: <strong>{points[hoveredIndex].precipitation}mm</strong></span>
-              </div>
-            </motion.div>
+      {/* Series Toggles (Legends) */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 shrink-0">
+        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">모니터링 지표:</span>
+        
+        {/* Max Temperature Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowTemperature(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+            showTemperature
+              ? 'bg-rose-50 border-rose-200 text-rose-700 font-extrabold'
+              : 'bg-slate-50 border-slate-200 text-slate-400'
+          }`}
+        >
+          {showTemperature ? (
+            <>
+              <Eye className="w-3 h-3" />
+              <Thermometer className="w-3 h-3 text-rose-500" />
+            </>
+          ) : (
+            <>
+              <EyeOff className="w-3 h-3" />
+              <Thermometer className="w-3 h-3 text-slate-300" />
+            </>
           )}
-        </AnimatePresence>
+          <span>최고 기온 (°C)</span>
+        </button>
+
+        {/* Avg Temperature Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowAvgTemperature(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+            showAvgTemperature
+              ? 'bg-amber-50 border-amber-200 text-amber-700 font-extrabold'
+              : 'bg-slate-50 border-slate-200 text-slate-400'
+          }`}
+        >
+          {showAvgTemperature ? (
+            <>
+              <Eye className="w-3 h-3" />
+              <Thermometer className="w-3 h-3 text-amber-500" />
+            </>
+          ) : (
+            <>
+              <EyeOff className="w-3 h-3" />
+              <Thermometer className="w-3 h-3 text-slate-300" />
+            </>
+          )}
+          <span>평균 기온 (°C)</span>
+        </button>
+
+        {/* Precipitation Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowPrecipitation(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+            showPrecipitation
+              ? 'bg-cyan-50 border-cyan-200 text-cyan-700 font-extrabold'
+              : 'bg-slate-50 border-slate-200 text-slate-400'
+          }`}
+        >
+          {showPrecipitation ? (
+            <>
+              <Eye className="w-3 h-3" />
+              <CloudRain className="w-3 h-3 text-cyan-500" />
+            </>
+          ) : (
+            <>
+              <EyeOff className="w-3 h-3" />
+              <CloudRain className="w-3 h-3 text-slate-300" />
+            </>
+          )}
+          <span>강수량 (mm)</span>
+        </button>
+
+        {/* Humidity Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowHumidity(prev => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
+            showHumidity
+              ? 'bg-sky-50 border-sky-200 text-sky-700 font-extrabold'
+              : 'bg-slate-50 border-slate-200 text-slate-400'
+          }`}
+        >
+          {showHumidity ? (
+            <>
+              <Eye className="w-3 h-3" />
+              <Droplets className="w-3 h-3 text-sky-500" />
+            </>
+          ) : (
+            <>
+              <EyeOff className="w-3 h-3" />
+              <Droplets className="w-3 h-3 text-slate-300" />
+            </>
+          )}
+          <span>습도 (%)</span>
+        </button>
       </div>
 
-      {/* Selected Month Indicator/Banner */}
-      <div className="text-[10px] text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 flex items-center justify-between mt-1 shrink-0">
+      {/* Chart Canvas Area */}
+      <div className="flex-1 min-h-[160px] w-full relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={chartData}
+            onClick={handleChartClick}
+            margin={{ top: 10, right: 10, left: -15, bottom: 5 }}
+            className="cursor-pointer"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={{ stroke: '#cbd5e1' }}
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }}
+              tickFormatter={formatXAxis}
+              interval={0}
+            />
+            
+            {/* Left Y-axis for Temperature (Exclusive) */}
+            <YAxis
+              yAxisId="left"
+              domain={[-10, 40]}
+              tickLine={false}
+              axisLine={{ stroke: '#cbd5e1' }}
+              tick={{ fill: '#64748b', fontSize: 9, fontWeight: 'bold' }}
+              unit="°C"
+            />
+
+            {/* Right Y-axis for Humidity (%) and Precipitation (mm) (Shared) */}
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, viewMode === 'monthly' ? 350 : 100]}
+              tickLine={false}
+              axisLine={{ stroke: '#cbd5e1' }}
+              tick={{ fill: '#64748b', fontSize: 9, fontWeight: 'bold' }}
+              unit={viewMode === 'monthly' ? 'mm' : '%'}
+            />
+
+            <Tooltip content={<CustomTooltip />} />
+
+            {/* Render Precipitation as Bar graph at the bottom */}
+            {showPrecipitation && (
+              <Bar
+                yAxisId="right"
+                dataKey="precipitation"
+                name="강수량"
+                fill="#22d3ee"
+                fillOpacity={0.6}
+                stroke="#0891b2"
+                strokeWidth={1}
+                barSize={viewMode === 'monthly' ? 24 : 6}
+              />
+            )}
+
+            {/* Render Max Temperature Line */}
+            {showTemperature && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="temperature"
+                name="최고 기온"
+                stroke="#ef4444"
+                strokeWidth={2.5}
+                dot={{ r: viewMode === 'monthly' ? 3.5 : 1.5, stroke: '#ef4444', strokeWidth: 1.5, fill: '#fff' }}
+                activeDot={{ r: 5 }}
+              />
+            )}
+
+            {/* Render Avg Temperature Line */}
+            {showAvgTemperature && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="avgTemperature"
+                name="평균 기온"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: viewMode === 'monthly' ? 3 : 1, stroke: '#f59e0b', strokeWidth: 1.5, fill: '#fff' }}
+                activeDot={{ r: 4 }}
+              />
+            )}
+
+            {/* Render Humidity Line */}
+            {showHumidity && (
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="humidity"
+                name="습도"
+                stroke="#0ea5e9"
+                strokeWidth={2}
+                dot={{ r: viewMode === 'monthly' ? 3.5 : 1.5, stroke: '#0ea5e9', strokeWidth: 1.5, fill: '#fff' }}
+                activeDot={{ r: 5 }}
+              />
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Selector Banner Footer */}
+      <div className="text-[10px] text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 flex items-center justify-between mt-2 shrink-0">
         <span className="font-medium">
           {viewMode === 'monthly' ? (
-            <>현재 분석 필터: <strong className="text-emerald-700">{selectedMonth}</strong> (클릭 시 월간 트렌드 동기화)</>
+            <>현재 조회: <strong className="text-emerald-700">{selectedMonth}</strong> (차트 노드 클릭 시 해당 월 대장 기록 필터링)</>
           ) : (
-            <>조회 중: <strong className="text-emerald-700">{selectedMonth} 일별 모니터링</strong> (사인웨이브 시뮬레이션)</>
+            <>조회 중: <strong className="text-emerald-700">{selectedMonth} 세부 일별 온·습도 및 기상 추이</strong> (30일 복합 모의 데이터)</>
           )}
         </span>
-        <span className="text-xxs hidden md:inline">
-          {viewMode === 'monthly' ? '월별 막대를 클릭하여 필터를 변경할 수 있습니다.' : '월간 탭을 눌러 전체 보기로 전환할 수 있습니다.'}
+        <span className="text-xxs hidden md:inline text-slate-400">
+          {viewMode === 'monthly' ? '월간 노드를 클릭하면 해당 월로 대장 기록을 필터링할 수 있습니다.' : '월간 분석 탭을 눌러 1년 변화 트렌드를 언제든 확인하세요.'}
         </span>
       </div>
     </div>
   );
 }
-

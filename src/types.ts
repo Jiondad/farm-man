@@ -3,6 +3,7 @@ export interface ForestryRecord {
   date: string;         // 작업일 (YYYY-MM-DD)
   weather: string;      // 날씨 (맑음, 흐림, 비, 눈, 안개)
   temperature: number;  // 온도 (°C)
+  humidity?: number;    // 습도 (%)
   areaId: string;       // 작업구역 (Area.id)
   workersCount: number; // 참여인원 (명)
   workHours: number;    // 작업시간 (시간)
@@ -26,6 +27,8 @@ export interface ForestryArea {
 
 export interface ClimateData {
   month: string;        // 월 (e.g. "1월")
-  temperature: number;  // 평균 온도 (°C)
+  temperature: number;  // 최고 기온 (°C)
+  avgTemperature: number; // 평균 기온 (°C)
   precipitation: number;// 강수량 (mm)
+  humidity: number;     // 평균 습도 (%)
 }

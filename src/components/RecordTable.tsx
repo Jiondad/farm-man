@@ -77,6 +77,7 @@ export default function RecordTable({
               <th className="p-2.5 w-[100px] pl-4">작업일</th>
               <th className="p-2.5 w-[70px] text-center">날씨</th>
               <th className="p-2.5 w-[70px] text-center">온도 (°C)</th>
+              <th className="p-2.5 w-[70px] text-center">습도 (%)</th>
               <th className="p-2.5 w-[160px]">작업구역</th>
               <th className="p-2.5 w-[110px] text-center">참여인원/시간</th>
               <th className="p-2.5 w-[240px]">작업내용</th>
@@ -93,7 +94,7 @@ export default function RecordTable({
           <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
             {records.length === 0 ? (
               <tr>
-                <td colSpan={12} className="text-center py-10 text-slate-400 font-semibold bg-white">
+                <td colSpan={13} className="text-center py-10 text-slate-400 font-semibold bg-white">
                   등록된 임업경영기록이 없습니다. '기록 추가 +'를 통해 첫 대장을 기록해 보세요.
                 </td>
               </tr>
@@ -116,6 +117,11 @@ export default function RecordTable({
 
                   {/* Temp */}
                   <td className="p-2 text-center font-medium text-slate-600">{record.temperature}°C</td>
+
+                  {/* Humidity */}
+                  <td className="p-2 text-center font-medium text-slate-600">
+                    {record.humidity !== undefined ? `${record.humidity}%` : '-'}
+                  </td>
 
                   {/* Area */}
                   <td className="p-2 font-medium text-slate-800 truncate" title={getAreaName(record.areaId)}>
