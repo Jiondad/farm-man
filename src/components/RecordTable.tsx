@@ -41,7 +41,7 @@ export default function RecordTable({
                 filterByMonth ? 'bg-white text-emerald-700 shadow-3xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              {selectedMonth} 데이터만 보기
+              {selectedMonth}월 데이터만 보기
             </button>
             <button
               onClick={() => setFilterByMonth(false)}

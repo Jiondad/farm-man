@@ -319,13 +319,13 @@ export default function App() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 h-auto lg:h-[74px] shrink-0">
         <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full hover:border-emerald-200 transition-all">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-50 text-rose-600 rounded-xl"><TrendingUp className="w-4.5 h-4.5" /></div>
+            <div className="p-2.5 bg-emerald-50 text-amber-600 rounded-xl"><Users className="w-4.5 h-4.5" /></div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">{cleanMonth}월 지출 총계</p>
-              <h3 className="text-sm font-black text-slate-800 leading-none">{totalExpenses.toLocaleString()} 원</h3>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">{cleanMonth}월 총 투입 인원</p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">{totalWorkers.toLocaleString()} 명</h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm shrink-0">경영지 투입액</span>
+          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm shrink-0">실가동 인적자원</span>
         </div>
         <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full hover:border-emerald-200 transition-all">
           <div className="flex items-center gap-3">
@@ -339,13 +339,13 @@ export default function App() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full hover:border-emerald-200 transition-all">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-50 text-amber-600 rounded-xl"><Users className="w-4.5 h-4.5" /></div>
+            <div className="p-2.5 bg-emerald-50 text-rose-600 rounded-xl"><TrendingUp className="w-4.5 h-4.5" /></div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">{cleanMonth}월 총 투입 인원</p>
-              <h3 className="text-sm font-black text-slate-800 leading-none">{totalWorkers.toLocaleString()} 명</h3>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">{cleanMonth}월 지출 총계</p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">{totalExpenses.toLocaleString()} 원</h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm shrink-0">실가동 인적자원</span>
+          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm shrink-0">경영지 투입액</span>
         </div>
         <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full hover:border-emerald-200 transition-all">
           <div className="flex items-center gap-3">
