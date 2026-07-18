@@ -18,7 +18,7 @@ interface ClimateChartProps {
   onMonthSelect: (month: string) => void;
 }
 
-export default function ClimateChart({ data, selectedMonth, onMonthSelect }: ClimateChartProps) {
+export default function ClimateChart({ data = [], selectedMonth, onMonthSelect }: ClimateChartProps) {
   const [viewMode, setViewMode] = useState<'monthly' | 'daily'>('monthly');
   const [showTemperature, setShowTemperature] = useState<boolean>(true);
   const [showAvgTemperature, setShowAvgTemperature] = useState<boolean>(true);
@@ -30,6 +30,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
     const list = [];
     for (let d = 1; d <= 30; d++) {
       list.push({
+        name: `${d}일`,
         label: `${d}일`,
         temperature: 0,
         avgTemperature: 0,
@@ -43,19 +44,30 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
 
   // Combine data depending on monthly vs daily mode
   const chartData = useMemo(() => {
+    const fallbackData = Array.isArray(data) ? data : [];
     if (viewMode === 'monthly') {
-      return data.map(d => ({
-        label: d.month,
-        temperature: d.temperature,
-        avgTemperature: d.avgTemperature,
-        precipitation: d.precipitation,
-        humidity: d.humidity,
-        originalKey: d.month,
+      return fallbackData.map(d => ({
+        name: d?.month || '',
+        label: d?.month || '',
+        temperature: typeof d?.temperature === 'number' ? d.temperature : 0,
+        avgTemperature: typeof d?.avgTemperature === 'number' ? d.avgTemperature : 0,
+        precipitation: typeof d?.precipitation === 'number' ? d.precipitation : 0,
+        humidity: typeof d?.humidity === 'number' ? d.humidity : 0,
+        originalKey: d?.month || '',
       }));
     } else {
       return dailyData;
     }
   }, [viewMode, data, dailyData]);
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex flex-col h-full justify-center items-center min-h-[250px]">
+        <CalendarDays className="w-8 h-8 text-slate-300 mb-2" />
+        <span className="text-xs text-slate-400 font-medium">기상 기후 통계 데이터가 없습니다.</span>
+      </div>
+    );
+  }
 
   // Format X Axis ticks to prevent overlapping in daily view
   const formatXAxis = (value: string, index: number) => {
@@ -283,7 +295,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
             <YAxis
               yAxisId="right"
               orientation="right"
-              domain={[0, viewMode === 'monthly' ? 350 : 100]}
+              domain={[0, 100]}
               tickLine={false}
               axisLine={{ stroke: '#cbd5e1' }}
               tick={{ fill: '#64748b', fontSize: 9, fontWeight: 'bold' }}
