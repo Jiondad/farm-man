@@ -1,0 +1,6 @@
+{
+  "name": "Forestry Management Dashboard",
+  "description": "구글시트 양식 기반의 데이터와 기후 변화 트렌드를 통합 모니터링하는 고기능성 임업경영관리 웹 대시보드",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,533 @@
+import React, { useState, useEffect } from 'react';
+import { ForestryRecord, ForestryArea, ClimateData } from './types';
+import {
+  DEFAULT_AREAS,
+  DEFAULT_RECORDS,
+  CLIMATE_DATA_YEARLY,
+  DEFAULT_ADDRESS,
+  WEATHER_OPTIONS
+} from './data';
+import ClimateChart from './components/ClimateChart';
+import AreaPanel from './components/AreaPanel';
+import RecordTable from './components/RecordTable';
+import RecordModal from './components/RecordModal';
+import AreaModal from './components/AreaModal';
+
+// Icons
+import {
+  Trees,
+  MapPin,
+  Calendar,
+  Plus,
+  TrendingUp,
+  Clock,
+  Users,
+  Layers,
+  Edit3,
+  Check,
+  X,
+  FileSpreadsheet,
+  Download,
+  Database
+} from 'lucide-react';
+
+export default function App() {
+  // --- States ---
+  const [areas, setAreas] = useState<ForestryArea[]>([]);
+  const [records, setRecords] = useState<ForestryRecord[]>([]);
+  const [address, setAddress] = useState(DEFAULT_ADDRESS);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [tempAddress, setTempAddress] = useState(DEFAULT_ADDRESS);
+
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState('7월');
+  const [selectedAreaId, setSelectedAreaId] = useState('');
+  
+  // Toggle: Filter table by selected month, or view all records
+  const [filterByMonth, setFilterByMonth] = useState(true);
+
+  // Modals
+  const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<ForestryRecord | null>(null);
+
+  const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
+  const [editingArea, setEditingArea] = useState<ForestryArea | null>(null);
+
+  // --- Initial Mount: Load from LocalStorage ---
+  useEffect(() => {
+    const savedAreas = localStorage.getItem('forestry_areas');
+    const savedRecords = localStorage.getItem('forestry_records');
+    const savedAddress = localStorage.getItem('forestry_address');
+
+    if (savedAreas) {
+      const parsed = JSON.parse(savedAreas);
+      setAreas(parsed);
+      if (parsed.length > 0) setSelectedAreaId(parsed[0].id);
+    } else {
+      setAreas(DEFAULT_AREAS);
+      localStorage.setItem('forestry_areas', JSON.stringify(DEFAULT_AREAS));
+      setSelectedAreaId(DEFAULT_AREAS[0].id);
+    }
+
+    if (savedRecords) {
+      setRecords(JSON.parse(savedRecords));
+    } else {
+      setRecords(DEFAULT_RECORDS);
+      localStorage.setItem('forestry_records', JSON.stringify(DEFAULT_RECORDS));
+    }
+
+    if (savedAddress) {
+      setAddress(savedAddress);
+      setTempAddress(savedAddress);
+    } else {
+      setAddress(DEFAULT_ADDRESS);
+      setTempAddress(DEFAULT_ADDRESS);
+      localStorage.setItem('forestry_address', DEFAULT_ADDRESS);
+    }
+  }, []);
+
+  // --- Helpers for date translation ---
+  const getMonthNumber = (m: string) => {
+    const num = parseInt(m);
+    return num < 10 ? `0${num}` : `${num}`;
+  };
+
+  // --- Filtering Logic ---
+  const filteredRecords = records.filter((rec) => {
+    // Year filter
+    if (!rec.date.startsWith(selectedYear)) return false;
+
+    // Optional Month filter
+    if (filterByMonth) {
+      const monthNum = getMonthNumber(selectedMonth);
+      return rec.date.substring(5, 7) === monthNum;
+    }
+    return true;
+  });
+
+  // Sort records by date descending
+  const sortedRecords = [...filteredRecords].sort((a, b) => b.date.localeCompare(a.date));
+
+  // --- Stats Calculations ---
+  const totalExpenses = sortedRecords.reduce((sum, r) => sum + r.expense, 0);
+  const totalWorkHours = sortedRecords.reduce((sum, r) => sum + r.workHours, 0);
+  const totalWorkers = sortedRecords.reduce((sum, r) => sum + r.workersCount, 0);
+
+  // --- Handlers ---
+  const handleSaveAddress = () => {
+    if (tempAddress.trim()) {
+      setAddress(tempAddress);
+      localStorage.setItem('forestry_address', tempAddress);
+      setIsEditingAddress(false);
+    }
+  };
+
+  const handleCancelAddress = () => {
+    setTempAddress(address);
+    setIsEditingAddress(false);
+  };
+
+  // Record Save/Edit
+  const handleSaveRecord = (recordData: Omit<ForestryRecord, 'id' | 'expense'> & { id?: string }) => {
+    let updated: ForestryRecord[];
+    const expense = recordData.price * recordData.quantity;
+
+    if (recordData.id) {
+      // Editing
+      updated = records.map((r) =>
+        r.id === recordData.id
+          ? { ...r, ...recordData, expense } as ForestryRecord
+          : r
+      );
+    } else {
+      // New
+      const newRec: ForestryRecord = {
+        ...recordData,
+        id: `REC-${Date.now().toString(36).toUpperCase()}`,
+        expense,
+      };
+      updated = [newRec, ...records];
+    }
+
+    setRecords(updated);
+    localStorage.setItem('forestry_records', JSON.stringify(updated));
+    setEditingRecord(null);
+  };
+
+  // Record Delete
+  const handleDeleteRecord = (id: string) => {
+    if (window.confirm('선택하신 대장 행을 삭제하시겠습니까? 구글시트 연동 데이터에서 영구 제외됩니다.')) {
+      const updated = records.filter((r) => r.id !== id);
+      setRecords(updated);
+      localStorage.setItem('forestry_records', JSON.stringify(updated));
+    }
+  };
+
+  // Area Save/Edit
+  const handleSaveArea = (areaData: ForestryArea) => {
+    let updated: ForestryArea[];
+    const exists = areas.some((a) => a.id === areaData.id);
+
+    if (exists) {
+      updated = areas.map((a) => (a.id === areaData.id ? areaData : a));
+    } else {
+      updated = [...areas, areaData];
+    }
+
+    setAreas(updated);
+    localStorage.setItem('forestry_areas', JSON.stringify(updated));
+    setSelectedAreaId(areaData.id);
+    setEditingArea(null);
+  };
+
+  // Area Delete
+  const handleDeleteArea = (areaId: string) => {
+    const updated = areas.filter((a) => a.id !== areaId);
+    setAreas(updated);
+    localStorage.setItem('forestry_areas', JSON.stringify(updated));
+    if (selectedAreaId === areaId && updated.length > 0) {
+      setSelectedAreaId(updated[0].id);
+    }
+  };
+
+  // --- Export to CSV (Simulated Sheets Download) ---
+  const handleExportCSV = () => {
+    const headers = ['작업일', '날씨', '온도', '작업구역', '참여인원', '작업시간', '작업내용', '투입자재', '단가', '수량', '비용'];
+    const rows = records.map((r) => {
+      const area = areas.find((a) => a.id === r.areaId);
+      return [
+        r.date,
+        r.weather,
+        `${r.temperature}°C`,
+        area ? area.name : '알수없음',
+        `${r.workersCount}명`,
+        `${r.workHours}시간`,
+        r.content,
+        r.materials || '없음',
+        r.price,
+        r.quantity,
+        r.expense,
+      ];
+    });
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,\uFEFF' +
+      [headers.join(','), ...rows.map((e) => e.map(val => `"${val}"`).join(','))].join('\n');
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `임업경영기록대장_${selectedYear}_${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="h-screen w-full bg-slate-100 text-slate-800 flex flex-col justify-between overflow-hidden p-3 gap-2.5 font-sans">
+      {/* 1. Header (상단 영역) */}
+      <header className="bg-white rounded-xl border border-slate-200/80 px-4 py-2 flex items-center justify-between shadow-2xs h-[54px] shrink-0">
+        {/* Left: App Title & Icon */}
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-emerald-700 rounded-lg text-white shadow-sm flex items-center justify-center">
+            <Trees className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h1 className="text-sm font-black text-slate-800 tracking-tight leading-none flex items-center gap-1.5">
+              임업경영관리 통합 대시보드
+              <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 rounded-md">V2.4</span>
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">국유림 및 가식조림 실시간 경영 전산 시트</p>
+          </div>
+        </div>
+
+        {/* Center: Editable Management Address */}
+        <div className="flex-1 max-w-xl mx-6 flex items-center justify-center">
+          {isEditingAddress ? (
+            <div className="flex items-center gap-1.5 w-full bg-slate-50 p-1 rounded-lg border border-emerald-300">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-1" />
+              <input
+                type="text"
+                value={tempAddress}
+                onChange={(e) => setTempAddress(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveAddress();
+                  if (e.key === 'Escape') handleCancelAddress();
+                }}
+                className="w-full bg-transparent text-xs font-semibold text-slate-800 focus:outline-none placeholder-slate-400"
+                placeholder="대상지 주소 정보를 기입해 주세요"
+                autoFocus
+              />
+              <button
+                onClick={handleSaveAddress}
+                className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors cursor-pointer"
+                title="저장"
+              >
+                <Check className="w-3 h-3" />
+              </button>
+              <button
+                onClick={handleCancelAddress}
+                className="p-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-md transition-colors cursor-pointer"
+                title="취소"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsEditingAddress(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-lg cursor-pointer transition-all max-w-full text-center group"
+              title="클릭하여 주소지 수정"
+            >
+              <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0 animate-bounce" />
+              <span className="text-xs font-bold text-slate-700 truncate max-w-[420px]">
+                {address}
+              </span>
+              <Edit3 className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+            </div>
+          )}
+        </div>
+
+        {/* Right: Controls & "기록 추가" Button */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* Year Selector */}
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+          >
+            <option value="2026">2026년</option>
+            <option value="2025">2025년</option>
+          </select>
+
+          {/* Month Selector */}
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-2 py-1 bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            >
+              {Array.from({ length: 12 }, (_, i) => `${i + 1}월`).map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Action Buttons */}
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-emerald-300 text-slate-600 hover:text-emerald-800 text-xs font-bold rounded-lg transition-all shadow-2xs cursor-pointer"
+            title="CSV 구글시트 다운로드"
+          >
+            <Download className="w-3.5 h-3.5" />
+            내보내기
+          </button>
+
+          <button
+            onClick={() => {
+              setEditingRecord(null);
+              setIsRecordModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-xs font-extrabold rounded-lg transition-all shadow-xs cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            기록 추가 +
+          </button>
+        </div>
+      </header>
+
+      {/* 2. Key Indicator Metrics (요약 카드 영역) */}
+      <section className="grid grid-cols-4 gap-3 h-[74px] shrink-0">
+        {/* Card 1: Expenses */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+              <TrendingUp className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">
+                {selectedMonth} 지출 총계
+              </p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">
+                {totalExpenses.toLocaleString()} 원
+              </h3>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-sm">
+            조림지 투입액
+          </span>
+        </div>
+
+        {/* Card 2: Work Hours */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+              <Clock className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">
+                {selectedMonth} 총 작업 시간
+              </p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">
+                {totalWorkHours.toLocaleString()} 시간
+              </h3>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold text-sky-500 bg-sky-50 px-1.5 py-0.5 rounded-sm">
+            누적 조림공수
+          </span>
+        </div>
+
+        {/* Card 3: Workers count */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <Users className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">
+                {selectedMonth} 총 투입 인원
+              </p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">
+                {totalWorkers.toLocaleString()} 명
+              </h3>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm">
+            실가동 인적자원
+          </span>
+        </div>
+
+        {/* Card 4: Areas Registered */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl">
+              <Layers className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold leading-none mb-1">
+                총 등록 경영 대상구역
+              </p>
+              <h3 className="text-sm font-black text-slate-800 leading-none">
+                {areas.length} 구역
+              </h3>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm">
+            식재 필지 수
+          </span>
+        </div>
+      </section>
+
+      {/* 3. Middle Area (중간 영역 - 기후 차트 & 대상구역 패널) */}
+      <section className="grid grid-cols-2 gap-3 h-[235px] shrink-0">
+        {/* Left: Climate Trend Chart */}
+        <div className="h-full">
+          <ClimateChart
+            data={CLIMATE_DATA_YEARLY[selectedYear] || CLIMATE_DATA_YEARLY['2026']}
+            selectedMonth={selectedMonth}
+            onMonthSelect={(m) => setSelectedMonth(m)}
+          />
+        </div>
+
+        {/* Right: Area Panel */}
+        <div className="h-full">
+          <AreaPanel
+            areas={areas}
+            selectedAreaId={selectedAreaId}
+            onSelectArea={(id) => setSelectedAreaId(id)}
+            onAddAreaClick={() => {
+              setEditingArea(null);
+              setIsAreaModalOpen(true);
+            }}
+            onEditAreaClick={(area) => {
+              setEditingArea(area);
+              setIsAreaModalOpen(true);
+            }}
+            onDeleteAreaClick={handleDeleteArea}
+          />
+        </div>
+      </section>
+
+      {/* 4. Bottom Area (하단 영역 - 상세 임업경영 기록 대장 테이블) */}
+      <section className="flex-1 min-h-0 flex flex-col justify-between">
+        {/* Table Filter Topbar */}
+        <div className="flex items-center justify-between mb-1.5 shrink-0 px-1">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4 text-emerald-800" />
+            <h2 className="text-xs font-extrabold text-slate-800">
+              {selectedYear}년 {filterByMonth ? `${selectedMonth} 대장` : '전체 대장'} 상세 데이터 내역
+            </h2>
+          </div>
+
+          {/* Toggle filter */}
+          <div className="flex items-center gap-3 text-xxs font-bold">
+            <span className="text-slate-500">대장 필터 구분:</span>
+            <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-300">
+              <button
+                onClick={() => setFilterByMonth(true)}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  filterByMonth
+                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {selectedMonth} 데이터만 보기
+              </button>
+              <button
+                onClick={() => setFilterByMonth(false)}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  !filterByMonth
+                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {selectedYear}년 전체 내역 보기
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* The Detailed Table Component */}
+        <div className="flex-1 min-h-0">
+          <RecordTable
+            records={sortedRecords}
+            areas={areas}
+            onEditRecordClick={(rec) => {
+              setEditingRecord(rec);
+              setIsRecordModalOpen(true);
+            }}
+            onDeleteRecordClick={handleDeleteRecord}
+          />
+        </div>
+      </section>
+
+      {/* --- Modals --- */}
+      {/* 1. Record Add/Edit Modal */}
+      <RecordModal
+        isOpen={isRecordModalOpen}
+        onClose={() => {
+          setIsRecordModalOpen(false);
+          setEditingRecord(null);
+        }}
+        onSave={handleSaveRecord}
+        record={editingRecord}
+        areas={areas}
+      />
+
+      {/* 2. Area Add/Edit Modal */}
+      <AreaModal
+        isOpen={isAreaModalOpen}
+        onClose={() => {
+          setIsAreaModalOpen(false);
+          setEditingArea(null);
+        }}
+        onSave={handleSaveArea}
+        onDelete={handleDeleteArea}
+        area={editingArea}
+      />
+    </div>
+  );
+}
