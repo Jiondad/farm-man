@@ -303,20 +303,20 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-100 text-slate-800 flex flex-col justify-between overflow-hidden p-3 gap-2.5 font-sans">
+    <div className="min-h-screen lg:h-screen w-full bg-slate-100 text-slate-800 flex flex-col justify-between lg:overflow-hidden p-3 gap-2.5 font-sans">
       {/* 1. Header (상단 영역) */}
-      <header className="bg-white rounded-xl border border-slate-200/80 px-4 py-2 flex items-center justify-between shadow-2xs h-[54px] shrink-0">
+      <header className="bg-white rounded-xl border border-slate-200/80 px-4 py-3 lg:py-2 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-2.5 shadow-2xs h-auto lg:h-[54px] shrink-0">
         {/* Left: App Title & Icon */}
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 bg-emerald-700 rounded-lg text-white shadow-sm flex items-center justify-center">
+        <div className="flex items-center gap-2.5 w-full lg:w-auto">
+          <div className="p-1.5 bg-emerald-700 rounded-lg text-white shadow-sm flex items-center justify-center shrink-0">
             <Trees className="w-5 h-5 animate-pulse" />
           </div>
-          <div>
-            <h1 className="text-sm font-black text-slate-800 tracking-tight leading-none flex items-center gap-1.5">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm font-black text-slate-800 tracking-tight leading-none flex flex-wrap items-center gap-1.5">
               임업경영관리 통합 대시보드
               <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 rounded-md">V2.4</span>
               {isLoading && (
-                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-200 rounded-md animate-pulse">
+                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-800 text-[10px] font-black border border-amber-200 rounded-md animate-pulse shrink-0">
                   <Database className="w-3 h-3 text-amber-600 animate-bounce" />
                   구글 시트 연동 중...
                 </span>
@@ -327,7 +327,7 @@ export default function App() {
         </div>
 
         {/* Center: Editable Management Address */}
-        <div className="flex-1 max-w-xl mx-6 flex items-center justify-center">
+        <div className="w-full lg:flex-1 lg:max-w-xl lg:mx-6 flex items-center justify-center">
           {isEditingAddress ? (
             <div className="flex items-center gap-1.5 w-full bg-slate-50 p-1 rounded-lg border border-emerald-300">
               <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-1" />
@@ -361,11 +361,11 @@ export default function App() {
           ) : (
             <div
               onClick={() => setIsEditingAddress(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-lg cursor-pointer transition-all max-w-full text-center group"
+              className="flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-lg cursor-pointer transition-all w-full max-w-full text-center group"
               title="클릭하여 주소지 수정"
             >
               <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0 animate-bounce" />
-              <span className="text-xs font-bold text-slate-700 truncate max-w-[420px]">
+              <span className="text-xs font-bold text-slate-700 truncate max-w-[280px] sm:max-w-[420px]">
                 {address}
               </span>
               <Edit3 className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -374,23 +374,23 @@ export default function App() {
         </div>
 
         {/* Right: Controls & "기록 추가" Button */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto lg:justify-end shrink-0">
           {/* Year Selector */}
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none cursor-pointer flex-1 sm:flex-initial"
           >
             <option value="2026">2026년</option>
             <option value="2025">2025년</option>
           </select>
 
           {/* Month Selector */}
-          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 flex-1 sm:flex-initial justify-center">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-2 py-1 bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="px-2 py-1 bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer w-full text-center"
             >
               {Array.from({ length: 12 }, (_, i) => `${i + 1}월`).map((m) => (
                 <option key={m} value={m}>
@@ -403,7 +403,7 @@ export default function App() {
           {/* Action Buttons */}
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-emerald-300 text-slate-600 hover:text-emerald-800 text-xs font-bold rounded-lg transition-all shadow-2xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-emerald-300 text-slate-600 hover:text-emerald-800 text-xs font-bold rounded-lg transition-all shadow-2xs cursor-pointer flex-1 sm:flex-initial"
             title="CSV 구글시트 다운로드"
           >
             <Download className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ export default function App() {
               setEditingRecord(null);
               setIsRecordModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-xs font-extrabold rounded-lg transition-all shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-xs font-extrabold rounded-lg transition-all shadow-xs cursor-pointer flex-1 sm:flex-initial"
           >
             <Plus className="w-4 h-4" />
             기록 추가 +
@@ -424,9 +424,9 @@ export default function App() {
       </header>
 
       {/* 2. Key Indicator Metrics (요약 카드 영역) */}
-      <section className="grid grid-cols-4 gap-3 h-[74px] shrink-0">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 h-auto lg:h-[74px] shrink-0">
         {/* Card 1: Expenses */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
               <TrendingUp className="w-4.5 h-4.5" />
@@ -440,13 +440,13 @@ export default function App() {
               </h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-sm">
+          <span className="text-[9px] font-extrabold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-sm shrink-0">
             경영지 투입액
           </span>
         </div>
 
         {/* Card 2: Work Hours */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
               <Clock className="w-4.5 h-4.5" />
@@ -460,13 +460,13 @@ export default function App() {
               </h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-sky-500 bg-sky-50 px-1.5 py-0.5 rounded-sm">
+          <span className="text-[9px] font-extrabold text-sky-500 bg-sky-50 px-1.5 py-0.5 rounded-sm shrink-0">
             누적 작업공수
           </span>
         </div>
 
         {/* Card 3: Workers count */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
               <Users className="w-4.5 h-4.5" />
@@ -480,13 +480,13 @@ export default function App() {
               </h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm">
+          <span className="text-[9px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm shrink-0">
             실가동 인적자원
           </span>
         </div>
 
         {/* Card 4: Areas Registered */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3 flex items-center justify-between shadow-2xs h-auto lg:h-full">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl">
               <Layers className="w-4.5 h-4.5" />
@@ -500,16 +500,16 @@ export default function App() {
               </h3>
             </div>
           </div>
-          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm">
+          <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm shrink-0">
             경영 필지 수
           </span>
         </div>
       </section>
 
       {/* 3. Middle Area (중간 영역 - 기후 차트 & 대상구역 패널) */}
-      <section className="grid grid-cols-2 gap-3 h-[280px] shrink-0">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-3 h-auto lg:h-[280px] shrink-0">
         {/* Left: Climate Trend Chart */}
-        <div className="h-full">
+        <div className="min-h-[300px] lg:h-full">
           <ClimateChart
             data={CLIMATE_DATA_YEARLY[selectedYear] || CLIMATE_DATA_YEARLY['2026']}
             selectedMonth={selectedMonth}
@@ -518,7 +518,7 @@ export default function App() {
         </div>
 
         {/* Right: Area Panel */}
-        <div className="h-full">
+        <div className="min-h-[280px] lg:h-full">
           <AreaPanel
             areas={areas}
             selectedAreaId={selectedAreaId}
@@ -539,7 +539,7 @@ export default function App() {
       {/* 4. Bottom Area (하단 영역 - 상세 임업경영 기록 대장 테이블) */}
       <section className="flex-1 min-h-0 flex flex-col justify-between">
         {/* Table Filter Topbar */}
-        <div className="flex items-center justify-between mb-1.5 shrink-0 px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2 shrink-0 px-1">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-emerald-800" />
             <h2 className="text-xs font-extrabold text-slate-800">
@@ -548,8 +548,8 @@ export default function App() {
           </div>
 
           {/* Toggle filter */}
-          <div className="flex items-center gap-2.5 text-[9px] font-bold">
-            <span className="text-slate-500">대장 필터 구분:</span>
+          <div className="flex items-center gap-2 text-[9px] font-bold w-full sm:w-auto justify-between sm:justify-start">
+            <span className="text-slate-500 shrink-0">대장 필터 구분:</span>
             <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-300">
               <button
                 onClick={() => setFilterByMonth(true)}

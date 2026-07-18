@@ -69,7 +69,7 @@ export default function RecordTable({
       </div>
 
       {/* Scrollable Table Wrapper */}
-      <div className="flex-1 overflow-y-auto max-h-[300px]">
+      <div className="flex-1 overflow-auto max-h-[300px] w-full">
         <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
           {/* Header */}
           <thead className="bg-slate-100/90 sticky top-0 z-10 border-b border-slate-200 shadow-2xs backdrop-blur-xs">
