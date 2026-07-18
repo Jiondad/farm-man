@@ -58,7 +58,7 @@ export default function AreaPanel({
       </div>
 
       {/* Main Panel Content (Grid 2 Columns: Left list, Right details) */}
-      <div className="flex-1 grid grid-cols-12 overflow-hidden h-[155px]">
+      <div className="flex-1 grid grid-cols-12 overflow-hidden">
         {/* Left Column: List (Max 4 items to strictly avoid scrolling) */}
         <div className="col-span-5 border-r border-slate-100 flex flex-col justify-start overflow-hidden bg-slate-50/20">
           <div className="flex-1 flex flex-col justify-between p-1.5 gap-1 overflow-hidden">

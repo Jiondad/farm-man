@@ -24,7 +24,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
   const paddingLeft = 40;
   const paddingRight = 40;
   const paddingTop = 20;
-  const paddingBottom = 25;
+  const paddingBottom = 35;
 
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
@@ -172,7 +172,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
                   x2={x2}
                   y2={y2}
                   stroke="#F43F5E"
-                  strokeWidth="2.5"
+                  strokeWidth="1.5"
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
                   animate={isLoaded ? { pathLength: 1 } : {}}
@@ -195,10 +195,10 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
                     r={isSelected ? 5.5 : hoveredIndex === idx ? 4.5 : 3.5}
                     className={`transition-all duration-200 ${
                       isSelected 
-                        ? 'fill-rose-600 stroke-white stroke-2 shadow-sm' 
+                        ? 'fill-rose-600 stroke-white stroke-[1.5] shadow-sm' 
                         : hoveredIndex === idx 
                           ? 'fill-rose-500 stroke-rose-100 stroke-1' 
-                          : 'fill-white stroke-rose-500 stroke-2'
+                          : 'fill-white stroke-rose-500 stroke-[1.5]'
                     }`}
                     initial={{ scale: 0 }}
                     animate={isLoaded ? { scale: 1 } : {}}
@@ -218,7 +218,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
               <text
                 key={`label-${idx}`}
                 x={x}
-                y={height - 8}
+                y={height - 12}
                 textAnchor="middle"
                 onClick={() => onMonthSelect(item.month)}
                 className={`text-[9.5px] font-semibold cursor-pointer transition-colors duration-200 ${

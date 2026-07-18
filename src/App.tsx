@@ -422,7 +422,7 @@ export default function App() {
       </section>
 
       {/* 3. Middle Area (중간 영역 - 기후 차트 & 대상구역 패널) */}
-      <section className="grid grid-cols-2 gap-3 h-[235px] shrink-0">
+      <section className="grid grid-cols-2 gap-3 h-[280px] shrink-0">
         {/* Left: Climate Trend Chart */}
         <div className="h-full">
           <ClimateChart
