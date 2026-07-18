@@ -19,7 +19,7 @@ export default function AreaModal({
 }: AreaModalProps) {
   const [name, setName] = useState('');
   const [treeSpecies, setTreeSpecies] = useState('');
-  const [areaSize, setAreaSize] = useState(5000);
+  const [areaSize, setAreaSize] = useState(0);
   const [plantDate, setPlantDate] = useState('');
   const [status, setStatus] = useState<ForestryArea['status']>('정상');
   const [description, setDescription] = useState('');
@@ -35,14 +35,11 @@ export default function AreaModal({
       setDescription(area.description);
     } else {
       setName('');
-      setTreeSpecies('소나무');
-      setAreaSize(5000);
+      setTreeSpecies('');
+      setAreaSize(0);
       
-      // Default plant date: 5 years ago
-      const fiveYearsAgo = new Date();
-      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-      const defaultPlantDate = `${fiveYearsAgo.getFullYear()}-${String(fiveYearsAgo.getMonth() + 1).padStart(2, '0')}`;
-      setPlantDate(defaultPlantDate);
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      setPlantDate(currentMonth);
       
       setStatus('정상');
       setDescription('');
