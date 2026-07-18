@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 import { ForestryRecord, ForestryArea } from './types';
 import { DEFAULT_AREAS, DEFAULT_RECORDS, CLIMATE_DATA_YEARLY, DEFAULT_ADDRESS } from './data';
 import ClimateChart from './components/ClimateChart';
@@ -6,7 +6,23 @@ import AreaPanel from './components/AreaPanel';
 import RecordTable from './components/RecordTable';
 import RecordModal from './components/RecordModal';
 import AreaModal from './components/AreaModal';
-import { Trees, MapPin, Plus, TrendingUp, Clock, Users, Layers, Edit3, Check, X, Download, Database } from 'lucide-react';
+import { Trees, MapPin, Plus, TrendingUp, Clock, Users, Layers, Edit3, Check, X, Download, Database, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale/ko';
+
+const CustomMonthInput = forwardRef(({ value, onClick }: any, ref: any) => (
+  <button
+    type="button"
+    onClick={onClick}
+    ref={ref}
+    className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-emerald-300 text-xs font-bold text-slate-700 rounded-lg transition-all shadow-2xs hover:shadow-xs cursor-pointer flex-1 sm:flex-initial"
+  >
+    <Calendar className="w-4 h-4 text-emerald-700" />
+    <span>{value}</span>
+  </button>
+));
+CustomMonthInput.displayName = 'CustomMonthInput';
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyyDFiQuDCrAVpVZeHuNJHaDfHZ9K94hMCMhyxgTd2iSsp1mXTLgoQC0C83MT_CpkroiQ/exec";
 
@@ -271,17 +287,18 @@ export default function App() {
 
         {/* Right: Controls & Buttons */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto lg:justify-end shrink-0">
-          <input
-            type="month"
-            value={`${selectedYear}-${parseInt(selectedMonth) < 10 ? '0' + selectedMonth : selectedMonth}`}
-            onChange={(e) => {
-              if (e.target.value) {
-                const [year, month] = e.target.value.split('-');
-                setSelectedYear(year);
-                setSelectedMonth(parseInt(month).toString());
+          <DatePicker
+            selected={new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, 1)}
+            onChange={(date: Date | null) => {
+              if (date) {
+                setSelectedYear(date.getFullYear().toString());
+                setSelectedMonth((date.getMonth() + 1).toString());
               }
             }}
-            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1.5 focus:ring-emerald-600/50 cursor-pointer flex-1 sm:flex-initial transition-all"
+            dateFormat="yyyy년 MM월"
+            showMonthYearPicker
+            locale={ko}
+            customInput={<CustomMonthInput />}
           />
 
           <button

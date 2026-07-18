@@ -1,6 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 import { ForestryArea } from '../types';
-import { X, Save, AlertCircle, Trash2, Trees } from 'lucide-react';
+import { X, Save, AlertCircle, Trash2, Trees, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { ko } from 'date-fns/locale/ko';
+
+const CustomAreaMonthInput = forwardRef(({ value, onClick }: any, ref: any) => (
+  <button
+    type="button"
+    onClick={onClick}
+    ref={ref}
+    className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-200 hover:border-emerald-500 rounded-lg text-xs font-semibold text-slate-800 transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+  >
+    <span>{value}</span>
+    <Calendar className="w-4 h-4 text-emerald-700 shrink-0" />
+  </button>
+));
+CustomAreaMonthInput.displayName = 'CustomAreaMonthInput';
 
 interface AreaModalProps {
   isOpen: boolean;
@@ -178,12 +194,23 @@ export default function AreaModal({
             {/* Planting Date */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">식재/파종/접종 시기 (YYYY-MM)</label>
-              <input
-                type="month"
-                value={plantDate}
-                onChange={(e) => setPlantDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-colors"
-                required
+              <DatePicker
+                selected={(() => {
+                  if (!plantDate) return new Date();
+                  const [year, month] = plantDate.split('-');
+                  return new Date(parseInt(year), parseInt(month) - 1, 1);
+                })()}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    setPlantDate(`${year}-${month}`);
+                  }
+                }}
+                dateFormat="yyyy년 MM월"
+                showMonthYearPicker
+                locale={ko}
+                customInput={<CustomAreaMonthInput />}
               />
             </div>
           </div>
