@@ -302,6 +302,10 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  const currentMonthNum = parseInt(selectedMonth, 10);
+  const formattedMonthStr = currentMonthNum < 10 ? `0${currentMonthNum}` : `${currentMonthNum}`;
+  const monthInputValue = `${selectedYear}-${formattedMonthStr}`;
+
   return (
     <div className="min-h-screen lg:h-screen w-full bg-slate-100 text-slate-800 flex flex-col justify-between lg:overflow-hidden p-3 gap-2.5 font-sans">
       {/* 1. Header (상단 영역) */}
@@ -375,30 +379,19 @@ export default function App() {
 
         {/* Right: Controls & "기록 추가" Button */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto lg:justify-end shrink-0">
-          {/* Year Selector */}
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none cursor-pointer flex-1 sm:flex-initial"
-          >
-            <option value="2026">2026년</option>
-            <option value="2025">2025년</option>
-          </select>
-
-          {/* Month Selector */}
-          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5 flex-1 sm:flex-initial justify-center">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-2 py-1 bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer w-full text-center"
-            >
-              {Array.from({ length: 12 }, (_, i) => `${i + 1}월`).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Month Picker Component */}
+          <input
+            type="month"
+            value={monthInputValue}
+            onChange={(e) => {
+              if (e.target.value) {
+                const [year, month] = e.target.value.split('-');
+                setSelectedYear(year);
+                setSelectedMonth(`${parseInt(month, 10)}월`);
+              }
+            }}
+            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1.5 focus:ring-emerald-600/50 cursor-pointer flex-1 sm:flex-initial transition-all"
+          />
 
           {/* Action Buttons */}
           <button
