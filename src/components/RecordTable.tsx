@@ -67,12 +67,8 @@ export default function RecordTable({
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col h-full overflow-hidden relative">
       {/* Table Header Action Bar */}
-      <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0"></span>
-          <h4 className="text-xs font-bold text-slate-700 truncate">임업경영기록 상세대장</h4>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+      <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200/60 flex flex-col md:flex-row md:items-center justify-end gap-2 md:gap-4">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4 w-full md:justify-between">
           {/* Toggle filter */}
           <div className="flex items-center gap-2 text-[9px] font-bold">
             <span className="text-slate-500 shrink-0">대장 필터 구분:</span>

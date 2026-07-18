@@ -186,7 +186,7 @@ export default function ClimateChart({ data = [], selectedMonth, onMonthSelect }
               <Thermometer className="w-3 h-3 text-slate-300" />
             </>
           )}
-          <span>최고 기온 (°C)</span>
+          <span>기온 (°C)</span>
         </button>
 
         {/* Avg Temperature Toggle */}
@@ -324,7 +324,7 @@ export default function ClimateChart({ data = [], selectedMonth, onMonthSelect }
                 yAxisId="left"
                 type="monotone"
                 dataKey="temperature"
-                name="최고 기온"
+                name="기온"
                 stroke="#ef4444"
                 strokeWidth={2.5}
                 dot={{ r: viewMode === 'monthly' ? 3.5 : 1.5, stroke: '#ef4444', strokeWidth: 1.5, fill: '#fff' }}

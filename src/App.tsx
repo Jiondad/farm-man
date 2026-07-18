@@ -450,14 +450,11 @@ export default function App() {
 
       {/* 4. Bottom Area (하단 영역 - 상세 임업경영 기록 대장 테이블) */}
       <section className="flex-1 min-h-0 flex flex-col justify-between">
-        <div className="flex items-center justify-between px-1 mb-1 shrink-0 mt-1">
+        <div className="flex items-center justify-between px-1 mb-1.5 shrink-0 mt-4 lg:mt-5">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-3 bg-emerald-700 rounded-full"></span>
-            <span className="text-xs font-extrabold text-slate-600 flex items-center gap-1.5">
+            <span className="text-xs font-extrabold text-slate-600">
               임업경영기록 상세 대장
-              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                Google Sheets 양식 연동
-              </span>
             </span>
           </div>
         </div>
