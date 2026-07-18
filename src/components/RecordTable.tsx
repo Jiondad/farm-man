@@ -33,33 +33,32 @@ export default function RecordTable({
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col h-full overflow-hidden relative">
       <div className="flex items-center justify-between p-2.5 border-b border-slate-200/80 bg-slate-50/50 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider ml-1">대장 필터 구분:</span>
-          <div className="flex bg-slate-200/50 p-0.5 rounded-lg border border-slate-200/80">
-            <button
-              onClick={() => setFilterByMonth(true)}
-              className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                filterByMonth ? 'bg-white text-emerald-700 shadow-3xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              {selectedMonth}월 데이터만 보기
-            </button>
-            <button
-              onClick={() => setFilterByMonth(false)}
-              className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
-                !filterByMonth ? 'bg-white text-emerald-700 shadow-3xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              {selectedYear}년 전체 내역 보기
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mr-1">
-          <span className="text-[10px] text-slate-400 font-medium hidden sm:inline-block">
-            마우스 호버 시 현장 작업 사진이 팝업됩니다.
-          </span>
-          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold border border-slate-200">
+          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold border border-slate-200 ml-1">
             대장 내 역대 기록 건수: <strong className="text-slate-700">{records.length}</strong>건
           </span>
+        </div>
+        <div className="flex items-center gap-3 mr-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">대장 필터 구분:</span>
+            <div className="flex bg-slate-200/50 p-0.5 rounded-lg border border-slate-200/80">
+              <button
+                onClick={() => setFilterByMonth(true)}
+                className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+                  filterByMonth ? 'bg-white text-emerald-700 shadow-3xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {selectedMonth}월 데이터만 보기
+              </button>
+              <button
+                onClick={() => setFilterByMonth(false)}
+                className={`px-3 py-1 rounded-md text-[10px] font-black transition-all cursor-pointer ${
+                  !filterByMonth ? 'bg-white text-emerald-700 shadow-3xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {selectedYear}년 전체 내역 보기
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
