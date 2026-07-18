@@ -26,9 +26,12 @@ export default function RecordTable({
   const [hoveredPhotoId, setHoveredPhotoId] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
 
+  const safeRecordsList = Array.isArray(records) ? records : [];
+  const safeAreasList = Array.isArray(areas) ? areas : [];
+
   const getAreaName = (areaId: string) => {
-    const area = areas.find((a) => a.id === areaId);
-    return area ? area.name : '알 수 없음';
+    const area = safeAreasList.find((a) => a?.id === areaId);
+    return area ? (area.name || '미지정 구역') : '알 수 없음';
   };
 
   const getWeatherIcon = (weather: string) => {
@@ -49,9 +52,9 @@ export default function RecordTable({
   };
 
   // Calculate totals
-  const totalWorkers = records.reduce((sum, r) => sum + (r.workersCount || 0), 0);
-  const totalHours = records.reduce((sum, r) => sum + (r.workHours || 0), 0);
-  const totalExpense = records.reduce((sum, r) => sum + (r.expense || 0), 0);
+  const totalWorkers = safeRecordsList.reduce((sum, r) => sum + (r?.workersCount || 0), 0);
+  const totalHours = safeRecordsList.reduce((sum, r) => sum + (r?.workHours || 0), 0);
+  const totalExpense = safeRecordsList.reduce((sum, r) => sum + (r?.expense || 0), 0);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     // Offset the preview popup slightly from the mouse cursor
@@ -98,7 +101,7 @@ export default function RecordTable({
           </div>
 
           <div className="text-[11px] text-slate-400 flex items-center gap-2 font-medium">
-            <span>대장 내 역대 기록 건수: <strong className="text-slate-700 font-bold">{records.length}건</strong></span>
+            <span>대장 내 역대 기록 건수: <strong className="text-slate-700 font-bold">{safeRecordsList.length}건</strong></span>
             <span>|</span>
             <span className="text-emerald-700">마우스 호버 시 현장 작업 사진이 팝업됩니다.</span>
           </div>
@@ -129,14 +132,14 @@ export default function RecordTable({
 
           {/* Rows */}
           <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
-            {records.length === 0 ? (
+            {safeRecordsList.length === 0 ? (
               <tr>
                 <td colSpan={13} className="text-center py-10 text-slate-400 font-semibold bg-white">
                   등록된 임업경영기록이 없습니다. '기록 추가 +'를 통해 첫 대장을 기록해 보세요.
                 </td>
               </tr>
             ) : (
-              records.map((record) => (
+              safeRecordsList.map((record) => (
                 <tr
                   key={record.id}
                   className="hover:bg-slate-50/60 transition-colors group"

@@ -69,7 +69,7 @@ export default function RecordModal({
       setWeather('맑음');
       setTemperature(25);
       setHumidity(60);
-      setAreaId(areas.length > 0 ? areas[0].id : '');
+      setAreaId((areas || []).length > 0 ? areas[0].id : '');
       setWorkersCount(2);
       setWorkHours(8);
       setContent('');
@@ -266,9 +266,9 @@ export default function RecordModal({
                 required
               >
                 <option value="">-- 구역 선택 --</option>
-                {areas.map((area) => (
+                {(areas || []).map((area) => (
                   <option key={area.id} value={area.id}>
-                    {area.name} ({area.treeSpecies})
+                    {area.name || '미지정 구역'} ({area.treeSpecies || (area as any).tree_species || '미지정'})
                   </option>
                 ))}
               </select>

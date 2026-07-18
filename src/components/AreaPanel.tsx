@@ -20,9 +20,10 @@ export default function AreaPanel({
   onDeleteAreaClick,
 }: AreaPanelProps) {
   // Find currently selected area, fallback to first one if not found
-  const selectedArea = areas.find(a => a.id === selectedAreaId) || areas[0];
+  const fallbackAreas = Array.isArray(areas) ? areas : [];
+  const selectedArea = fallbackAreas.find(a => a?.id === selectedAreaId) || fallbackAreas[0];
 
-  const getStatusStyle = (status: ForestryArea['status']) => {
+  const getStatusStyle = (status: any) => {
     switch (status) {
       case '정상':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -62,8 +63,12 @@ export default function AreaPanel({
         {/* Left Column: List (Max 4 items to strictly avoid scrolling) */}
         <div className="col-span-5 border-r border-slate-100 flex flex-col justify-start overflow-hidden bg-slate-50/20">
           <div className="flex-1 flex flex-col justify-between p-1.5 gap-1 overflow-hidden">
-            {areas.slice(0, 4).map((area) => {
+            {fallbackAreas.slice(0, 4).map((area) => {
+              if (!area) return null;
               const isSelected = area.id === selectedArea?.id;
+              const nameVal = area.name || '미지정 구역';
+              const speciesVal = area.treeSpecies || (area as any).tree_species || '미지정';
+              const statusVal = area.status || '정상';
               return (
                 <div
                   key={area.id}
@@ -81,13 +86,13 @@ export default function AreaPanel({
                       <Trees className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold truncate">{area.name}</p>
-                      <p className="text-[10px] text-slate-400 truncate font-medium">{area.treeSpecies}</p>
+                      <p className="text-xs font-bold truncate">{nameVal}</p>
+                      <p className="text-[10px] text-slate-400 truncate font-medium">{speciesVal}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold border ${getStatusStyle(area.status)}`}>
-                      {area.status}
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold border ${getStatusStyle(statusVal)}`}>
+                      {statusVal}
                     </span>
                     <ChevronRight className={`w-3.5 h-3.5 transition-transform ${
                       isSelected ? 'text-emerald-700 translate-x-0.5' : 'text-slate-300 group-hover:text-slate-500'
@@ -98,9 +103,9 @@ export default function AreaPanel({
             })}
             
             {/* If there are more than 4 areas (rare but handled gracefully without layout break) */}
-            {areas.length > 4 && (
+            {fallbackAreas.length > 4 && (
               <p className="text-[9px] text-center text-slate-400 font-medium py-0.5">
-                외 {areas.length - 4}개 구역 등록됨 (화면 레이아웃 최적화)
+                외 {fallbackAreas.length - 4}개 구역 등록됨 (화면 레이아웃 최적화)
               </p>
             )}
           </div>
@@ -115,13 +120,13 @@ export default function AreaPanel({
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h4 className="text-xs font-extrabold text-slate-800 truncate">{selectedArea.name}</h4>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold border ${getStatusStyle(selectedArea.status)}`}>
-                        {selectedArea.status}
+                      <h4 className="text-xs font-extrabold text-slate-800 truncate">{selectedArea.name || '미지정 구역'}</h4>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold border ${getStatusStyle(selectedArea.status || '정상')}`}>
+                        {selectedArea.status || '정상'}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                      <span className="font-bold text-emerald-800">주요 수종 및 재배품목:</span> {selectedArea.treeSpecies}
+                      <span className="font-bold text-emerald-800">주요 수종 및 재배품목:</span> {selectedArea.treeSpecies || (selectedArea as any).tree_species || '미지정'}
                     </p>
                   </div>
 
@@ -142,8 +147,8 @@ export default function AreaPanel({
                         e.stopPropagation();
                         onDeleteAreaClick(selectedArea.id);
                       }}
-                      disabled={areas.length <= 1} // Keep at least 1 area
-                      title={areas.length <= 1 ? "최소 1개의 구역이 유지되어야 합니다" : "구역 삭제"}
+                      disabled={fallbackAreas.length <= 1} // Keep at least 1 area
+                      title={fallbackAreas.length <= 1 ? "최소 1개의 구역이 유지되어야 합니다" : "구역 삭제"}
                       className="p-1 text-slate-400 hover:text-rose-600 hover:bg-slate-50 disabled:opacity-30 rounded-md transition-colors cursor-pointer border border-slate-100"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -165,7 +170,14 @@ export default function AreaPanel({
                   </div>
                   <div>
                     <p className="text-[9px] text-slate-400 leading-none">경영/재배 면적</p>
-                    <p className="text-xs font-extrabold text-slate-700">{selectedArea.areaSize.toLocaleString()} m²</p>
+                    <p className="text-xs font-extrabold text-slate-700">
+                      {(() => {
+                        const sizeVal = selectedArea.areaSize !== undefined ? selectedArea.areaSize : (selectedArea as any).area_size;
+                        if (sizeVal === undefined || sizeVal === '' || sizeVal === null) return '-';
+                        const parsedSize = Number(sizeVal);
+                        return isNaN(parsedSize) ? '0 m²' : `${parsedSize.toLocaleString()} m²`;
+                      })()}
+                    </p>
                   </div>
                 </div>
 
@@ -175,7 +187,9 @@ export default function AreaPanel({
                   </div>
                   <div>
                     <p className="text-[9px] text-slate-400 leading-none">식재/파종/접종 시기</p>
-                    <p className="text-xs font-extrabold text-slate-700">{selectedArea.plantDate}</p>
+                    <p className="text-xs font-extrabold text-slate-700">
+                      {selectedArea.plantDate || (selectedArea as any).plant_date || '미지정'}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -138,7 +138,11 @@ export default function App() {
   };
 
   // --- Filtering Logic ---
-  const filteredRecords = records.filter((rec) => {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const safeAreas = Array.isArray(areas) ? areas : [];
+
+  const filteredRecords = safeRecords.filter((rec) => {
+    if (!rec || !rec.date) return false;
     // Year filter
     if (!rec.date.startsWith(selectedYear)) return false;
 
@@ -151,12 +155,16 @@ export default function App() {
   });
 
   // Sort records by date descending
-  const sortedRecords = [...filteredRecords].sort((a, b) => b.date.localeCompare(a.date));
+  const sortedRecords = [...filteredRecords].sort((a, b) => {
+    const dateA = a?.date || '';
+    const dateB = b?.date || '';
+    return dateB.localeCompare(dateA);
+  });
 
   // --- Stats Calculations ---
-  const totalExpenses = sortedRecords.reduce((sum, r) => sum + r.expense, 0);
-  const totalWorkHours = sortedRecords.reduce((sum, r) => sum + r.workHours, 0);
-  const totalWorkers = sortedRecords.reduce((sum, r) => sum + r.workersCount, 0);
+  const totalExpenses = sortedRecords.reduce((sum, r) => sum + (Number(r?.expense) || 0), 0);
+  const totalWorkHours = sortedRecords.reduce((sum, r) => sum + (Number(r?.workHours) || 0), 0);
+  const totalWorkers = sortedRecords.reduce((sum, r) => sum + (Number(r?.workersCount) || 0), 0);
 
   // --- Handlers ---
   const handleSaveAddress = () => {
@@ -489,7 +497,7 @@ export default function App() {
                 총 등록 경영 대상구역
               </p>
               <h3 className="text-sm font-black text-slate-800 leading-none">
-                {areas.length} 구역
+                {safeAreas.length} 구역
               </h3>
             </div>
           </div>
