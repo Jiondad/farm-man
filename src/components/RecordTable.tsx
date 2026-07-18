@@ -146,23 +146,23 @@ export default function RecordTable({
             </tr>
           </tbody>
           
-          <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+          <tfoot className="bg-emerald-50/50 border-t border-emerald-100">
             <tr>
               <td colSpan={6} className="px-3 py-3 text-right">
-                <span className="text-slate-400 text-[10px] hidden md:inline-block">* 실시간 수식 반영</span>
+                <span className="text-emerald-600/70 text-[10px] hidden md:inline-block">* 실시간 수식 반영</span>
               </td>
-              <td className="px-3 py-3 whitespace-nowrap text-xs text-center border-l border-slate-200">
-                <span className="text-slate-500 mr-1">총</span>
+              <td className="px-3 py-3 whitespace-nowrap text-xs text-center border-l border-emerald-100/50">
+                <span className="text-emerald-700/80 mr-1">총</span>
                 <span className="text-slate-700 font-medium mr-3">{totalWorkers.toLocaleString()}명</span>
-                <span className="text-slate-500 mr-1">총</span>
+                <span className="text-emerald-700/80 mr-1">총</span>
                 <span className="text-slate-700 font-medium">{totalHours.toLocaleString()}시간</span>
               </td>
-              <td colSpan={4} className="px-3 py-3 border-l border-slate-200"></td>
-              <td className="px-3 py-3 whitespace-nowrap text-sm text-right text-slate-800 border-l border-slate-200">
-                <span className="text-slate-500 mr-2 text-xs">합계</span>
-                <span className="font-semibold text-slate-800">{totalExpense.toLocaleString()} 원</span>
+              <td colSpan={4} className="px-3 py-3 border-l border-emerald-100/50"></td>
+              <td className="px-3 py-3 whitespace-nowrap text-sm text-right text-slate-800 border-l border-emerald-100/50">
+                <span className="text-emerald-700/80 mr-2 text-xs">합계</span>
+                <span className="font-semibold text-emerald-900">{totalExpense.toLocaleString()} 원</span>
               </td>
-              <td colSpan={2} className="px-3 py-3 border-l border-slate-200"></td>
+              <td colSpan={2} className="px-3 py-3 border-l border-emerald-100/50"></td>
             </tr>
           </tfoot>
         </table>
