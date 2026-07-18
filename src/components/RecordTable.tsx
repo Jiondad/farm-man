@@ -157,14 +157,23 @@ export default function RecordTable({
                   {/* Photo Attachment hover point */}
                   <td className="p-2 text-center">
                     {record.photoUrl ? (
-                      <div
-                        className="inline-flex items-center justify-center p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all cursor-zoom-in relative"
-                        onMouseEnter={() => setHoveredPhotoId(record.id)}
-                        onMouseLeave={() => setHoveredPhotoId(null)}
-                        onMouseMove={handleMouseMove}
-                      >
-                        <ImageIcon className="w-3.5 h-3.5" />
-                      </div>
+                      record.photoUrl.startsWith('http') ? (
+                        <div
+                          className="inline-flex items-center justify-center p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all cursor-zoom-in relative"
+                          onMouseEnter={() => setHoveredPhotoId(record.id)}
+                          onMouseLeave={() => setHoveredPhotoId(null)}
+                          onMouseMove={handleMouseMove}
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <span 
+                          className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200"
+                          title={record.photoUrl}
+                        >
+                          첨부 {record.photoUrl.split(',').map(s => s.trim()).filter(Boolean).length}개
+                        </span>
+                      )
                     ) : (
                       <span className="text-slate-300 text-[10px] font-medium">-</span>
                     )}

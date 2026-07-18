@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ForestryRecord, ForestryArea } from '../types';
-import { X, Save, AlertCircle, Sparkles, HelpCircle } from 'lucide-react';
+import { X, Save, AlertCircle, Sparkles, HelpCircle, UploadCloud, FileText, Trash2, Paperclip } from 'lucide-react';
 import { WEATHER_OPTIONS } from '../data';
 
 interface RecordModalProps {
@@ -10,15 +10,6 @@ interface RecordModalProps {
   record?: ForestryRecord | null; // If editing
   areas: ForestryArea[];
 }
-
-// Preset list of beautiful forest photos that fit any work content
-const PHOTO_PRESETS = [
-  { name: '금강송 숲', url: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=500&q=80' },
-  { name: '밀창 침엽수림', url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=500&q=80' },
-  { name: '가을 단풍지대', url: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=500&q=80' },
-  { name: '아침 안개 조림지', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80' },
-  { name: '울창한 녹색림', url: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=500&q=80' },
-];
 
 export default function RecordModal({
   isOpen,
@@ -37,8 +28,12 @@ export default function RecordModal({
   const [materials, setMaterials] = useState('');
   const [price, setPrice] = useState(0);
   const [quantity, setQuantity] = useState(0);
-  const [photoUrl, setPhotoUrl] = useState(PHOTO_PRESETS[0].url);
   const [error, setError] = useState('');
+
+  // Local state for uploaded files
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [existingFileNames, setExistingFileNames] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Hydrate fields if editing
   useEffect(() => {
@@ -53,7 +48,18 @@ export default function RecordModal({
       setMaterials(record.materials);
       setPrice(record.price);
       setQuantity(record.quantity);
-      setPhotoUrl(record.photoUrl || PHOTO_PRESETS[0].url);
+
+      // Handle parsing of photoUrl
+      if (record.photoUrl) {
+        if (record.photoUrl.startsWith('http')) {
+          setExistingFileNames([record.photoUrl]);
+        } else {
+          setExistingFileNames(record.photoUrl.split(',').map(s => s.trim()).filter(Boolean));
+        }
+      } else {
+        setExistingFileNames([]);
+      }
+      setAttachedFiles([]);
     } else {
       // Default initialization for new records
       const todayStr = new Date().toISOString().split('T')[0];
@@ -67,12 +73,53 @@ export default function RecordModal({
       setMaterials('');
       setPrice(0);
       setQuantity(0);
-      setPhotoUrl(PHOTO_PRESETS[0].url);
+      setExistingFileNames([]);
+      setAttachedFiles([]);
     }
     setError('');
   }, [record, isOpen, areas]);
 
   if (!isOpen) return null;
+
+  // Drag and drop event handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const filesArray = Array.from(e.dataTransfer.files) as File[];
+      const validFiles = filesArray.filter(
+        file => file.type.startsWith('image/') || file.type === 'application/pdf'
+      );
+      if (validFiles.length > 0) {
+        setAttachedFiles(prev => [...prev, ...validFiles]);
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      setAttachedFiles(prev => [...prev, ...filesArray]);
+    }
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const removeExistingFile = (index: number) => {
+    setExistingFileNames(prev => prev.filter((_, idx) => idx !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +145,13 @@ export default function RecordModal({
       return;
     }
 
+    // Combine existing file names and newly attached local files
+    const combinedFiles = [
+      ...existingFileNames,
+      ...attachedFiles.map(f => f.name)
+    ];
+    const finalPhotoUrl = combinedFiles.join(', ');
+
     onSave({
       id: record?.id,
       date,
@@ -110,7 +164,7 @@ export default function RecordModal({
       materials,
       price: Number(price),
       quantity: Number(quantity),
-      photoUrl,
+      photoUrl: finalPhotoUrl,
     });
     onClose();
   };
@@ -287,39 +341,104 @@ export default function RecordModal({
             <span className="text-sm font-black text-emerald-800">{(price * quantity).toLocaleString()} 원</span>
           </div>
 
-          {/* Photo attachment selector */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">작업 사진 첨부 (갤러리 프리셋 선택)</label>
-            <div className="grid grid-cols-5 gap-2">
-              {PHOTO_PRESETS.map((ph) => {
-                const isSelected = photoUrl === ph.url;
-                return (
-                  <div
-                    key={ph.name}
-                    onClick={() => setPhotoUrl(ph.url)}
-                    className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all relative group ${
-                      isSelected ? 'border-emerald-600 scale-[1.03] shadow-md' : 'border-slate-100 hover:border-slate-300'
-                    }`}
-                  >
-                    <img src={ph.url} alt={ph.name} className="w-full h-12 object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-slate-900/70 p-0.5 text-[8px] text-white text-center truncate font-semibold">
-                      {ph.name}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* File Upload Zone */}
+          <div className="border-t border-slate-100 pt-3">
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">작업 사진 및 영수증/증빙 서류 첨부 (다중 파일 업로드)</label>
             
-            {/* Custom URL Input if needed */}
-            <div className="mt-2.5">
+            {/* Drop Zone Box */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('file-upload-input')?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+                isDragging 
+                  ? 'border-emerald-600 bg-emerald-50/50 scale-[1.01]' 
+                  : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
+              }`}
+            >
               <input
-                type="text"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="또는 커스텀 이미지 URL을 직접 기입하세요"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-600 focus:outline-none focus:border-emerald-500"
+                id="file-upload-input"
+                type="file"
+                multiple
+                accept="image/*, application/pdf"
+                onChange={handleFileChange}
+                className="hidden"
               />
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className={`p-2.5 rounded-full ${isDragging ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'} transition-colors`}>
+                  <UploadCloud className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-slate-700">파일을 드래그 앤 드롭하거나 클릭하여 첨부하세요</p>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">이미지(JPG, PNG) 및 PDF 파일 첨부 가능</p>
+                </div>
+              </div>
             </div>
+
+            {/* Attached Files List */}
+            {((existingFileNames.length > 0) || (attachedFiles.length > 0)) && (
+              <div className="mt-3 space-y-1.5">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">첨부된 파일 목록 ({existingFileNames.length + attachedFiles.length}개)</p>
+                
+                <div className="bg-slate-50/60 rounded-xl border border-slate-100 p-2 space-y-1 max-h-[160px] overflow-y-auto">
+                  {/* Render existing saved files */}
+                  {existingFileNames.map((fileName, idx) => (
+                    <div key={`existing-${idx}`} className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-slate-200/60 shadow-3xs group/item">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {fileName.startsWith('http') ? (
+                          <img src={fileName} className="w-5 h-5 rounded object-cover shrink-0" referrerPolicy="no-referrer" />
+                        ) : (
+                          <Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        )}
+                        <span className="text-xxs font-semibold text-slate-600 truncate" title={fileName}>
+                          {fileName.startsWith('http') ? '온라인 연동 이미지 (기본값)' : fileName}
+                        </span>
+                        <span className="text-[9px] font-extrabold px-1 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded shrink-0">기존 파일</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeExistingFile(idx)}
+                        className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer"
+                        title="기존 첨부 삭제"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Render newly attached local files */}
+                  {attachedFiles.map((file, idx) => (
+                    <div key={`new-${idx}`} className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-slate-200/60 shadow-3xs group/item">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {file.type.startsWith('image/') ? (
+                          <div className="w-5 h-5 rounded overflow-hidden shrink-0 bg-slate-100">
+                            <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        )}
+                        <span className="text-xxs font-semibold text-slate-700 truncate" title={file.name}>
+                          {file.name}
+                        </span>
+                        <span className="text-[9px] text-slate-400 shrink-0 font-medium">
+                          ({(file.size / 1024).toFixed(1)} KB)
+                        </span>
+                        <span className="text-[9px] font-extrabold px-1 py-0.2 bg-amber-50 text-amber-700 border border-amber-100 rounded shrink-0">대기 중</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachedFile(idx)}
+                        className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-md transition-colors cursor-pointer"
+                        title="첨부 취소"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Footer */}
