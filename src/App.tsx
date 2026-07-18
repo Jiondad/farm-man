@@ -546,33 +546,6 @@ export default function App() {
               {selectedYear}년 {filterByMonth ? `${selectedMonth} 대장` : '전체 대장'} 상세 데이터 내역
             </h2>
           </div>
-
-          {/* Toggle filter */}
-          <div className="flex items-center gap-2 text-[9px] font-bold w-full sm:w-auto justify-between sm:justify-start">
-            <span className="text-slate-500 shrink-0">대장 필터 구분:</span>
-            <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-300">
-              <button
-                onClick={() => setFilterByMonth(true)}
-                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
-                  filterByMonth
-                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {selectedMonth} 데이터만 보기
-              </button>
-              <button
-                onClick={() => setFilterByMonth(false)}
-                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
-                  !filterByMonth
-                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {selectedYear}년 전체 내역 보기
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* The Detailed Table Component */}
@@ -585,6 +558,10 @@ export default function App() {
               setIsRecordModalOpen(true);
             }}
             onDeleteRecordClick={handleDeleteRecord}
+            filterByMonth={filterByMonth}
+            setFilterByMonth={setFilterByMonth}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
           />
         </div>
       </section>

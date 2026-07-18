@@ -7,6 +7,10 @@ interface RecordTableProps {
   areas: ForestryArea[];
   onEditRecordClick: (record: ForestryRecord) => void;
   onDeleteRecordClick: (id: string) => void;
+  filterByMonth: boolean;
+  setFilterByMonth: (val: boolean) => void;
+  selectedMonth: string;
+  selectedYear: string;
 }
 
 export default function RecordTable({
@@ -14,6 +18,10 @@ export default function RecordTable({
   areas,
   onEditRecordClick,
   onDeleteRecordClick,
+  filterByMonth,
+  setFilterByMonth,
+  selectedMonth,
+  selectedYear,
 }: RecordTableProps) {
   const [hoveredPhotoId, setHoveredPhotoId] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
@@ -56,15 +64,44 @@ export default function RecordTable({
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col h-full overflow-hidden relative">
       {/* Table Header Action Bar */}
-      <div className="bg-slate-50 px-4 py-2 border-b border-slate-200/60 flex items-center justify-between">
+      <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-          <h4 className="text-xs font-bold text-slate-700">임업경영기록 상세대장 (Google Sheets 양식 연동)</h4>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0"></span>
+          <h4 className="text-xs font-bold text-slate-700 truncate">임업경영기록 상세대장 (Google Sheets 양식 연동)</h4>
         </div>
-        <div className="text-[11px] text-slate-400 flex items-center gap-2 font-medium">
-          <span>대장 내 역대 기록 건수: <strong className="text-slate-700 font-bold">{records.length}건</strong></span>
-          <span>|</span>
-          <span className="text-emerald-700">마우스 호버 시 현장 작업 사진이 팝업됩니다.</span>
+        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+          {/* Toggle filter */}
+          <div className="flex items-center gap-2 text-[9px] font-bold">
+            <span className="text-slate-500 shrink-0">대장 필터 구분:</span>
+            <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-300">
+              <button
+                onClick={() => setFilterByMonth(true)}
+                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                  filterByMonth
+                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {selectedMonth} 데이터만 보기
+              </button>
+              <button
+                onClick={() => setFilterByMonth(false)}
+                className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                  !filterByMonth
+                    ? 'bg-white text-emerald-800 shadow-3xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {selectedYear}년 전체 내역 보기
+              </button>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-slate-400 flex items-center gap-2 font-medium">
+            <span>대장 내 역대 기록 건수: <strong className="text-slate-700 font-bold">{records.length}건</strong></span>
+            <span>|</span>
+            <span className="text-emerald-700">마우스 호버 시 현장 작업 사진이 팝업됩니다.</span>
+          </div>
         </div>
       </div>
 
