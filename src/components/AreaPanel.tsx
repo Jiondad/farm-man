@@ -45,7 +45,7 @@ export default function AreaPanel({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-800">경영 대상 구역 정보</h3>
-            <p className="text-xxs text-slate-500">등록된 재배/경영 구역 상태 및 품목 현황</p>
+            <p className="text-[10px] text-slate-500">등록된 재배/경영 구역 상태 및 품목 현황</p>
           </div>
         </div>
         <button

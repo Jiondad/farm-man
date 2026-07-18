@@ -149,7 +149,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
           </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-800">임업 기후 복합 통계 및 모니터링</h3>
-            <p className="text-xxs text-slate-500">
+            <p className="text-[10px] text-slate-500">
               {viewMode === 'monthly' ? '월별 최고/평균 기온, 강수량 및 습도 분포 그래프' : `${selectedMonth} 세부 일별 기상 지표 종합 변동`}
             </p>
           </div>
@@ -384,19 +384,7 @@ export default function ClimateChart({ data, selectedMonth, onMonthSelect }: Cli
         </ResponsiveContainer>
       </div>
 
-      {/* Selector Banner Footer */}
-      <div className="text-[10px] text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 flex items-center justify-between mt-2 shrink-0">
-        <span className="font-medium">
-          {viewMode === 'monthly' ? (
-            <>현재 조회: <strong className="text-emerald-700">{selectedMonth}</strong> (차트 노드 클릭 시 해당 월 대장 기록 필터링)</>
-          ) : (
-            <>조회 중: <strong className="text-emerald-700">{selectedMonth} 세부 일별 온·습도 및 기상 추이</strong> (30일 복합 모의 데이터)</>
-          )}
-        </span>
-        <span className="text-xxs hidden md:inline text-slate-400">
-          {viewMode === 'monthly' ? '월간 노드를 클릭하면 해당 월로 대장 기록을 필터링할 수 있습니다.' : '월간 분석 탭을 눌러 1년 변화 트렌드를 언제든 확인하세요.'}
-        </span>
-      </div>
+
     </div>
   );
 }

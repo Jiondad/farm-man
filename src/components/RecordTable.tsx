@@ -67,7 +67,7 @@ export default function RecordTable({
       <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0"></span>
-          <h4 className="text-xs font-bold text-slate-700 truncate">임업경영기록 상세대장 (Google Sheets 양식 연동)</h4>
+          <h4 className="text-xs font-bold text-slate-700 truncate">임업경영기록 상세대장</h4>
         </div>
         <div className="flex flex-wrap items-center gap-3 md:gap-4">
           {/* Toggle filter */}
@@ -252,7 +252,6 @@ export default function RecordTable({
       <div className="bg-emerald-800 text-emerald-50 px-4 py-2.5 border-t border-emerald-900 grid grid-cols-12 items-center text-xs font-black z-10 select-none">
         <div className="col-span-3 flex items-center gap-1.5">
           <span className="bg-emerald-700 text-white px-2 py-0.5 rounded-sm font-extrabold text-[10px]">TOTALS</span>
-          <span>구글시트 합계 집계행</span>
         </div>
         <div className="col-span-3 text-center flex items-center justify-center gap-4">
           <div>

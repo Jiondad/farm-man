@@ -538,16 +538,6 @@ export default function App() {
 
       {/* 4. Bottom Area (하단 영역 - 상세 임업경영 기록 대장 테이블) */}
       <section className="flex-1 min-h-0 flex flex-col justify-between">
-        {/* Table Filter Topbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2 shrink-0 px-1">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-800" />
-            <h2 className="text-xs font-extrabold text-slate-800">
-              {selectedYear}년 {filterByMonth ? `${selectedMonth} 대장` : '전체 대장'} 상세 데이터 내역
-            </h2>
-          </div>
-        </div>
-
         {/* The Detailed Table Component */}
         <div className="flex-1 min-h-0">
           <RecordTable
