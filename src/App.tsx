@@ -46,13 +46,12 @@ export default function App() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'area' | 'record' } | null>(null);
 
   useEffect(() => {
-    const savedAddress = localStorage.getItem('forestry_address');
-    if (savedAddress) { setAddress(savedAddress); setTempAddress(savedAddress); }
-    
     async function fetchInitialData() {
       try {
         const response = await fetch(API_URL);
         const data = await response.json();
+        
+        if (data.address) { setAddress(data.address); setTempAddress(data.address); }
         
         if (data && Array.isArray(data.areas)) {
           setAreas(data.areas.map((a: any) => ({ 
@@ -296,8 +295,8 @@ export default function App() {
           {isEditingAddress ? (
             <div className="flex items-center gap-1.5 w-full bg-slate-50 p-1 rounded-lg border border-emerald-300">
               <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-1" />
-              <input type="text" value={tempAddress} onChange={(e) => setTempAddress(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && tempAddress.trim()) { setAddress(tempAddress); localStorage.setItem('forestry_address', tempAddress); setIsEditingAddress(false); } if (e.key === 'Escape') { setTempAddress(address); setIsEditingAddress(false); } }} className="w-full bg-transparent text-xs font-semibold text-slate-800 focus:outline-none placeholder-slate-400" autoFocus />
-              <button onClick={() => { if (tempAddress.trim()) { setAddress(tempAddress); localStorage.setItem('forestry_address', tempAddress); setIsEditingAddress(false); } }} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors cursor-pointer"><Check className="w-3 h-3" /></button>
+              <input type="text" value={tempAddress} onChange={(e) => setTempAddress(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && tempAddress.trim()) { setAddress(tempAddress); postToGAS({ action: 'UPDATE_ADDRESS', address: tempAddress }); setIsEditingAddress(false); } if (e.key === 'Escape') { setTempAddress(address); setIsEditingAddress(false); } }} className="w-full bg-transparent text-xs font-semibold text-slate-800 focus:outline-none placeholder-slate-400" autoFocus />
+              <button onClick={() => { if (tempAddress.trim()) { setAddress(tempAddress); postToGAS({ action: 'UPDATE_ADDRESS', address: tempAddress }); setIsEditingAddress(false); } }} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition-colors cursor-pointer"><Check className="w-3 h-3" /></button>
               <button onClick={() => { setTempAddress(address); setIsEditingAddress(false); }} className="p-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-md transition-colors cursor-pointer"><X className="w-3 h-3" /></button>
             </div>
           ) : (
